@@ -50,7 +50,7 @@ public class Trame {
 		this.type = type;
 		this.opCode = opCode;
 		this.msg = msg;
-		System.out.println("trame cree : "+this.getTrame());
+		System.out.println("trame cree (n) : "+this.getTrame());
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class Trame {
 		this.type = Integer.parseInt(st.nextToken());
 		this.opCode = Integer.parseInt(st.nextToken());
 		this.msg = st.nextToken();
-		System.out.println("trame cree : "+this);
+		System.out.println("trame cree (s) : "+this.getTrame());
 	}
 
 	// methode getbyte - > byte[] pour le datagram packet
@@ -120,7 +120,7 @@ public class Trame {
 		return false;
 	}
 	
-	private String getTrame() {
+	protected String getTrame() {
 		return (dest+SEPARATOR+
 					src+SEPARATOR+
 					new Integer(type)+SEPARATOR+
@@ -130,8 +130,24 @@ public class Trame {
 	}
 	
 	public byte[] getBytes() {
-		return this.toString().getBytes();	
+	//	return this.toString().getBytes();	
+		return this.getTrame().getBytes();	
 	}
 	
-	
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	public boolean equals(Object arg0) {
+		System.out.println("equals sur objets");
+		return super.equals(arg0);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	public boolean equals(Trame msg) {
+		return (this.getTrame().equalsIgnoreCase(msg.getTrame()));
+	}
+
 }

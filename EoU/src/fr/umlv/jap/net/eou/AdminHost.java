@@ -5,7 +5,7 @@ package fr.umlv.jap.net.eou;
 
 import java.io.*;
 import java.net.*;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * Network Project
@@ -21,6 +21,7 @@ public class AdminHost implements Runnable {
 	
 	private BufferedWriter output;
 	
+	private Date start_ping = null;
 
 	
 	/** Default constructor */
@@ -61,7 +62,8 @@ public class AdminHost implements Runnable {
 		String cmd = "";
 		if (st.hasMoreTokens()) {
 			cmd = st.nextToken();
-			//			System.out.println(cmd);
+			
+						System.err.println(cmd);
 			if (cmd.equalsIgnoreCase("ip"))
 				adminIp(st);
 			//		else if (cmd.equalsIgnoreCase("arp")) 
@@ -70,8 +72,10 @@ public class AdminHost implements Runnable {
 			//			adminPing(st);
 			else if (cmd.equalsIgnoreCase("link")) 
 				adminLink(st);
-			else if (cmd.equalsIgnoreCase("ping")) 
+			else if (cmd.equalsIgnoreCase("ping")) {
+	//			System.err.println("admin ping");
 				adminPing(st);
+			}
 			else if (cmd.equalsIgnoreCase("quit")) 
 				sock.close();
 			else {
@@ -117,28 +121,55 @@ public class AdminHost implements Runnable {
 		private void adminPing(StringTokenizer st) throws IOException {
 			// appel : ping -conf mort-subite.conf host2 10:10:10:aa:10:11
 			String str;
-			String name;
-			File f;
-			if (!st.hasMoreTokens()) {
-				str = st.nextToken();
-				if (str.equalsIgnoreCase("-conf")) {
-					f = new File(st.nextToken());
-				} else {
-					f = Main.DEFAULT_CONF_FILE;
-				}
-				if (st.hasMoreTokens()) {
-					name = st.nextToken();
-					
-					if (st.hasMoreTokens()) {
+	//		String name;
+	//		File f;
+//	System.err.println("admin ping");
+			
+			if (st.hasMoreTokens()) {
+//				output.write("args ping");
+//				output.flush();
 						str = st.nextToken(); // MAC address
-						OurMac om = new OurMac(str);
-						Trame t = new Trame(h.getMac_address(), om, Trame.TYPE_PING, Trame.OPCODE_REQUEST, "test de ping");
-					}
-				}
-			} else {
-				h.setIp(InetAddress.getByName(st.nextToken()));
+						InetAddress ip = null;
+						try {
+							ip = InetAddress.getByName(str);
+							System.err.println("ping pas permis en destination de ip");
+							System.exit(-1);
+						} catch (IOException ioe){
+							OurMac dest_mac = new OurMac(str);
+			//				Trame t = new Trame(dest_mac, h.getMac_address(), Trame.TYPE_PING, Trame.OPCODE_REQUEST, "test de ping");
+							doPing(dest_mac, h.getMac_address());				
+						}
+			}
+			else  {
+				output.write("Pas assez d'args : \n\tping MAC-address\n");
+				output.flush();
 			}
 		}
+		
 
+
+	private void doPing(OurMac dest_mac, OurMac src_mac) throws IOException {
+			System.out.println("on ping ?");
+			Trame msg = new Trame(	dest_mac,
+															src_mac,
+															Trame.TYPE_PING,
+															Trame.OPCODE_REQUEST,
+															"<<pong>>");
+			//	sw.getPort(num_port).write(msg.getBytes());
+			byte[] buf = msg.getBytes();
+	//		System.out.println("avant dgs origin : "+origin);
+			DatagramPacket dp = new DatagramPacket(buf, buf.length, h.getLink().getIsa());
+	//		DatagramSocket ds = new DatagramSocket(this.origin);
+			DatagramSocket ds = new DatagramSocket();
+			ds.send(dp);
+	//		System.out.println("apres dgs");
+	//		this.start_time = new Date();
+	//		listenPingReception(msg);
+	
+			start_ping = new Date();
+			System.out.println("ping parti a  : "+start_ping);
+	
+	}
+	
 	
 }

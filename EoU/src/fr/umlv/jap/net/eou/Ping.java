@@ -73,13 +73,21 @@ public class Ping {
 	private void listenPingReception(Trame sent) {
 		MulticastSocket ms;
 		try {
+			System.out.println("inetsocket adresse d'origine : "+origin);
 			ms = new MulticastSocket(origin);
+			System.out.println("ms d'origine : "+ms);
 			// socket de reception
-			DatagramPacket dp = null;
+			byte[] buf = new byte[1024];
+	//		DatagramPacket dp = new DatagramPacket();
+	System.out.println("hey avt?");
+			DatagramPacket dp = new DatagramPacket(buf, buf.length, ms.getInetAddress(), ms.getPort());
+			System.out.println("hey ap?");
+
 			boolean isReceived = false;
 			while (!isReceived && !Main.stop) {
-			System.out.println("boucle !!");
+			System.out.println("boucle !! attend "+sent.getTrame()+" sur "+ms+"\n ad : "+ms.getInetAddress()+" port "+ms.getPort());
 				ms.receive(dp);
+				System.out.println("reception ? "+dp);
 				// verif C pouyr moi + answer ...
 				Trame rcp = new Trame(new String(dp.getData()));
 				if (rcp.isPingAnswer(sent))
@@ -98,6 +106,8 @@ public class Ping {
 
 	
 	public static void main(String[] args) {
+		// appel : ping [-conf file] [-ip address] name mac
+		// 				ping [-conf file] [-ip address] name ip
 		File f = null;
 		Ping p;
 		String name;
@@ -123,6 +133,12 @@ public class Ping {
 //				System.err.println("pas assez d'arguments ");	
 //		}
 		
+		if (args.length <2)  {
+		 	System.err.println("parametres incorects !");
+		 	System.out.println("ping [-conf file] [-ip address] name mac");
+		 	System.exit(-1)	;
+		}
+		
 		for (int i=0; i<args.length-2; ++i) {
 			if (args[i].equalsIgnoreCase("-conf")) {
 				f = new File(args[++i]);
@@ -136,7 +152,12 @@ public class Ping {
 
 		name = args[args.length - 2];
 		try {
-			Ping pong = new Ping(findOrigin(f, name));
+				System.out.println("hey ? " + f.getAbsolutePath());
+				Ping pong = new Ping(findOrigin(f, name));
+				if (pong == null ) {
+					System.err.println("Hote <"+name+"> introuvable dans le fichier "+f.getAbsolutePath());
+					System.exit(-1);
+				}
 			try { // distinguer IP/mac ?
 				pong.ip = InetAddress.getByName(args[args.length - 1]);
 				System.out.println("on a pris ip  "+pong.ip);

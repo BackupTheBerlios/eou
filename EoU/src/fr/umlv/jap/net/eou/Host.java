@@ -28,6 +28,8 @@ public class Host {
 //	private InetSocketAddress link;
 	private OurPort link;
 	
+	private Thread job_admin;
+	
 	//TODO ajouter une table ARP
 	
 	// communication
@@ -101,7 +103,7 @@ public class Host {
 						System.out.println("connection");
 						// un client s'est connect?
 		//				new Thread (new AdminSwitch(name, s)).start();
-						new Thread (new AdminHost(this, s)).start();
+						(job_admin = new Thread (new AdminHost(this, s))).start();
 					}
 				
 		} catch (IOException e) {
@@ -123,8 +125,8 @@ public class Host {
 //		
 //	}
 
-	protected void ping(OurMac dest_mac, String msg) {
-			 System.out.println("je veux envoyer "+msg+" a "+dest_mac);
+	protected void ping(OurMac dest_mac) {
+			 System.out.println("je veux envoyer "+" a "+dest_mac);
 	}
 
 	public boolean isMyMac(OurMac mac) {
@@ -179,6 +181,10 @@ public class Host {
 		return mac_address;
 	}
 	
+	public void treatTrame(Trame msg) {
+		System.out.println ("je suis "+name+" et je recois..."+msg.getTrame());
+	}
+	
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -208,7 +214,7 @@ public class Host {
 		}
 		else {
 			if (args.length>0) {
-				System.out.println("-> default");
+				System.out.println("-> default file ");
 	//			f = new File("network.conf");
 				f = Main.DEFAULT_CONF_FILE;
 				h = new Host(args[0], f);
@@ -218,6 +224,14 @@ public class Host {
 			
 		}
 			
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#finalize()
+	 */
+	protected void finalize() throws Throwable {
+		job_admin.destroy();
+		super.finalize();
 	}
 
 }

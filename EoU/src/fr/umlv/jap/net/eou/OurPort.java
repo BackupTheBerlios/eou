@@ -28,7 +28,7 @@ public class OurPort {
 	
 	protected Thread read;
 	
-	protected Thread write;
+//	protected Thread write;
 	
 	protected boolean isHost;
 	
@@ -40,9 +40,12 @@ public class OurPort {
 		super();
 		System.out.println("## ISA : "+isa);
 		this.isa = isa;
-		ms = new MulticastSocket(isa);
+//		ms = new MulticastSocket(isa);
+		ms = new MulticastSocket(isa.getPort());
+		ms.joinGroup(isa.getAddress());
+		System.out.println("ourPort cree une ms : "+ms.getInetAddress());
 //		ds = new DatagramSocket(); // il s'adapte tout seul...
-		read = new Thread(new Listener());
+		read = new Thread(new Listener(this));
 		read.start();
 //		write = new Thread(new Talker());
 //		write.start();
@@ -56,9 +59,15 @@ public class OurPort {
 		sw = s;
 		System.out.println("## ISA : "+isa);
 		this.isa = isa;
-		ms = new MulticastSocket(isa);
+		System.out.println("## this.ISA : "+this.isa);
+		System.out.println("## this.ISA port: "+this.isa.getPort());
+	//	ms = new MulticastSocket(isa);
+		ms = new MulticastSocket(isa.getPort());
+		System.out.println("ourPort sur switch cree une ms sur port: "+ms.getPort());
+		ms.joinGroup(isa.getAddress());
+		System.out.println("ourPort sur switch cree une ms adress : "+ms.getInetAddress());
 //		ds = new DatagramSocket(); // il s'adapte tout seul...
-		read = new Thread(new Listener());
+		read = new Thread(new Listener(this));
 		read.start();
 	}
 	
@@ -70,9 +79,13 @@ public class OurPort {
 		ho = h;
 		System.out.println("## ISA : "+isa);
 		this.isa = isa;
-		ms = new MulticastSocket(isa);
+		System.out.println("## this.ISA : "+this.isa);
+//		ms = new MulticastSocket(isa);
+		ms = new MulticastSocket(isa.getPort());
+		System.out.println("ourPort sur host cree une ms : "+ms.getInetAddress());
+		ms.joinGroup(isa.getAddress());
 //		ds = new DatagramSocket(); // il s'adapte tout seul...
-		read = new Thread(new Listener());
+		read = new Thread(new Listener(this));
 		read.start();
 	}
 	
@@ -114,12 +127,25 @@ public class OurPort {
 		return ("OurPort : "+isa.toString());	
 	}
 
+	public void send(Trame msg) {
+		try {
+			ds = new DatagramSocket();
+			byte[] buf = msg.getBytes();
+			DatagramPacket dp = new DatagramPacket(buf, buf.length, isa);
+			ds.send(dp);
+			ds.close();
+		} catch (IOException e) {
+			System.err.println("erreur d'E/S dans l envoi d une trame");
+		} 
+	}
+
 
 	/** a threading class to listen to the net */
 	class Listener implements Runnable {
-
-		public Listener() {
+		OurPort parent;
+		public Listener(OurPort parent) {
 			super();
+			this.parent = parent;
 		}
 
 		public void run() {
@@ -128,14 +154,20 @@ public class OurPort {
 				DatagramPacket dp = new DatagramPacket(buf, buf.length);
 				try {
 					ms.joinGroup(isa.getAddress());
+	//				System.out.println("ecoute sur "+ms.getInetAddress()+" port : "+ms.getPort());
 					ms.receive(dp);
-					System.out.println("reception : "+new String(dp.getData()));
 					Trame receipt = new Trame(new String(dp.getData()));
-					if (!isSwitchPort())
-						traitementHost(receipt); 
-					else
-						traitementSwitch(receipt);
+					System.out.println("reception (port) : "+receipt.getTrame());
+					if (!isSwitchPort()) {
+							ho.treatTrame(receipt);
+					} 
+					else {
+						System.out.println("chui le switch, je propage, ?a vient de "+this);
+						//traitementSwitch(receipt);
+						sw.propagate(receipt, parent);
+			//			System.out.println("traitement pour switch "+sw.getName());
 					//TODO traitement ?
+					}
 				} catch (IOException e) {
 					System.err.println("Probleme d'E/S dans listener switch");
 				}
@@ -166,5 +198,13 @@ public class OurPort {
 			}//loop
 		}//run
 	}//talker
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#finalize()
+	 */
+	protected void finalize() throws Throwable {
+		read.destroy();
+		super.finalize();
+	}
 
 }

@@ -16,17 +16,19 @@ public class Sniff {
 
 	private InetSocketAddress sock;
 	
+	private Thread job;
+	
 	/** Default constructor */
 	public Sniff(String str) {
 		super();
 		try {
 			this.sock = SyntaxAnalyz.parseISA(str);
-			new Thread() {
+			(job = new Thread() {
 				public void run() {	
 					while (!Main.stop)
 						survey(); //TODO	
 				}
-			}.start();
+			}).start();
 		} catch (UnknownHostException e) {
 		System.err.println("Hote inconnu pour le sniff");
 		}
@@ -38,17 +40,28 @@ public class Sniff {
 			try {
 //				DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
 				MulticastSocket ms = new MulticastSocket(); // num de port choisi par java
+				System.out.println("sock : "+sock);
 				DatagramPacket dgp = new DatagramPacket(buf, 0, sock);
 	//			dgs.send(dgp);
 				dgp.setLength(1024);
+				System.out.println("Sniff pret a lire");
 				ms.receive(dgp);
 				System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
 				//TODO preciser affichage + vers le term...
 			} catch (IOException ioe) {
 				System.err.println("Probleme d'E/S pour le sniff");
 			}
-			
 		}
+		
+		
+	/* (non-Javadoc)
+	 * @see java.lang.Object#finalize()
+	 */
+	protected void finalize() throws Throwable {
+		job.destroy();
+		super.finalize();
+	}
+
 	
 	public String toString() {
 		return ("renifle : <"+sock+">");

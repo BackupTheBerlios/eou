@@ -30,6 +30,10 @@ public class Switch {
 	private int priority;
 		
 	protected boolean stop = false;
+	
+	private ArrayList list; // stocke les trames envoy?es pour pas les renvoyer...
+	
+	private static final int CAPACITY = 100;
 
 //	private ArrayList ports;
 //	private Hashtable ports; // la ya peut ?tre mieux !
@@ -64,6 +68,7 @@ public class Switch {
 		ports = new OurPort[MAX_PORT];
 		LineNumberReader lnr;
 		String line = "";
+		list = new ArrayList(CAPACITY);
 		if ((lnr = SyntaxAnalyz.find(fich, "switch", name))!=null) {
 			try {
 				//			lnr.mark(1);
@@ -119,6 +124,24 @@ public class Switch {
 	}
 	
 	
+	private boolean dejaVu(Trame msg) {
+		for (int i=0; i<list.size(); ++i) 
+			if (((Trame)list.get(i)).equals(msg))
+				return true;
+		return false;
+	}
+	
+	
+	public void propagate(Trame msg, OurPort from) {
+		for (int i=0; i<ports.length; ++i) {
+			if (ports[i]!=null && !ports[i].equals(from) && !dejaVu(msg)) {
+				ports[i].send(msg);
+			}
+		}
+		list.add(msg);
+	}
+	
+	
 	private  void addPorts(String line) {
 //		String line;
 		String token = null;
@@ -138,6 +161,7 @@ public class Switch {
 							token = st.nextToken();
 	//						System.err.println (token);
 							InetSocketAddress isa = SyntaxAnalyz.parseISA(token);
+	//						System.out.println("ya qq 1 ? "+isa);
 							//			ports.add(i, os);
 	//						System.out.println("port : "+new Integer(i)+"\t socket : "+os);
 							setPort(i, new OurPort(isa, this));
@@ -360,7 +384,7 @@ public class Switch {
 		}
 		else {
 			if (args.length>0) {
-				System.out.println("-> default");
+				System.out.println("-> default file");
 //				f = new File("network.conf");
 				f = Main.DEFAULT_CONF_FILE;
 //				i = 0;
@@ -369,7 +393,6 @@ public class Switch {
 				System.err.println("pas assez d'arguments ");
 				System.exit(-1);
 			}
-				System.out.println("HEY !!");
 		s = new Switch(args[i], f);
 			
 		}
