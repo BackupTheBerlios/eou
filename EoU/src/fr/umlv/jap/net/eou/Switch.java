@@ -71,7 +71,9 @@ public class Switch {
 //			ports = new LinkedHashMap();
 			ports = new OurSocket[MAX_PORT];
 			addPorts(lnr);
-
+			
+			test();
+			
 			//TODO creer une connection TCP qui ecoute le port admin
 			runAdmin();
 			
@@ -175,11 +177,11 @@ public class Switch {
 	
 	private void runAdmin() {
 		try {
-			System.err.println("hey");
 			final ServerSocket ss = new ServerSocket(admin_port);
 			System.err.println("yop");
 					while (!stop) {//Idealement, il faurait gerer un pool de threads
 						Socket s = ss.accept();
+						System.err.println("hey");
 						// un client s'est connecté
 		//				new Thread (new AdminSwitch(name, s)).start();
 						new Thread (new AdminSwitch(this, s)).start();
@@ -271,6 +273,21 @@ public class Switch {
 		return sb.toString();
 	}
 	
+	protected void finalize() throws Throwable {
+		stop=true;
+	}
+	
+	
+	private void test() {
+		System.out.println(this);
+		System.out.println("## infos : ");
+		this.info("info");
+		System.out.println("## infos 6: ");
+		this.info("info 6");
+		System.out.println("## infos 7: ");
+		this.info("info 7");		
+	}
+	
 	// TESTS ...
 	public static void main(String[] args) {
 		int i = 0;
@@ -295,7 +312,7 @@ public class Switch {
 		}
 		
 		s = new Switch(args[i], f);
-		System.out.println(s);
+/*		System.out.println(s);
 		System.out.println("## infos : ");
 		s.info("info");
 		System.out.println("## infos 6: ");
@@ -303,14 +320,9 @@ public class Switch {
 		System.out.println("## infos 7: ");
 		s.info("info 7");
 		
-		try {
-			s.wait(2000000L);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 		s.stop = true;
 		System.out.println("bye");
-		
+		*/
 	}
 }

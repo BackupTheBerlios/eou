@@ -35,11 +35,12 @@ public class AdminSwitch implements Runnable {
 			BufferedReader is = new BufferedReader (new InputStreamReader(sock.getInputStream()));
 			BufferedWriter os = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
 			
-			String st;
+			String st="";
 			os.write("Administration du switch "+sw.getName()+"...\n\tEntrez votre texte : \n");
 			os.flush();
+			System.out.println(st);
 			while ((st = is.readLine())!=null) {
-				System.err.println("je lis : "+st);
+				System.err.println("admin switch lis : "+st);
 				os.write(st.toUpperCase()); //TODO faire traitement...
 				os.write("\n");
 				os.flush();
