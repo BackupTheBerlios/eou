@@ -26,6 +26,7 @@ public class Main {
 
 	private static SyntaxAnalyz sa;
 	
+	public static File DEFAULT_CONF_FILE = new File("../network.conf");
 
 
 	/**

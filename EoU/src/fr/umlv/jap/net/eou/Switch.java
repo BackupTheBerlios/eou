@@ -32,7 +32,7 @@ public class Switch {
 	protected boolean stop = false;
 
 //	private ArrayList ports;
-//	private Hashtable ports; // la ya peut être mieux !
+//	private Hashtable ports; // la ya peut ?tre mieux !
 //	private LinkedHashMap ports;
 	private InetSocketAddress[] ports;
 	
@@ -214,7 +214,7 @@ public class Switch {
 					while (/*!this.stop &&*/ !Main.stop) {//Idealement, il faurait gerer un pool de threads
 						Socket s = ss.accept();
 						System.out.println("nvelle connection");
-						// un client s'est connecté
+						// un client s'est connect?
 		//				new Thread (new AdminSwitch(name, s)).start();
 //						new Thread (new AdminSwitch(this, s)).start();
 						new Thread (new AdminSwitch(this, s)).start(); // finalement pas threade ?
@@ -356,7 +356,8 @@ public class Switch {
 		else {
 			if (args.length>0) {
 				System.out.println("-> default");
-				f = new File("network.conf");
+//				f = new File("network.conf");
+				f = Main.DEFAULT_CONF_FILE;
 //				i = 0;
 			}
 			else 

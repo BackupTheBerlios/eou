@@ -93,7 +93,7 @@ public class Host {
 					while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
 						Socket s = ss.accept();
 						System.out.println("connection");
-						// un client s'est connecté
+						// un client s'est connect?
 		//				new Thread (new AdminSwitch(name, s)).start();
 						new Thread (new AdminHost(this, s)).start();
 					}
@@ -117,6 +117,14 @@ public class Host {
 		
 	}
 
+	protected void ping(OurMac dest_mac, String msg) {
+			 System.out.println("je veux envoyer "+msg+" a "+dest_mac);
+	}
+
+	public boolean isMyMac(OurMac mac) {
+		return this.mac_address.equals(mac)	;
+	}
+	
 	
 	//TODO voir pour les accesseurs necessaires
 	
@@ -187,7 +195,8 @@ public class Host {
 		else {
 			if (args.length>0) {
 				System.out.println("-> default");
-				f = new File("network.conf");
+	//			f = new File("network.conf");
+				f = Main.DEFAULT_CONF_FILE;
 				h = new Host(args[0], f);
 			}
 			else 
