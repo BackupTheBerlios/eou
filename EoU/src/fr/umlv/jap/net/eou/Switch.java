@@ -212,21 +212,22 @@ public class Switch {
 		
 	}
 */	
-	private void info(String args) {
+	/** @deprecated */
+	protected void info(String args) {
 		StringTokenizer st = new StringTokenizer(args);
 		if(!st.nextToken().equalsIgnoreCase("info"))
 			System.err.println ("pb dans les param de l'info");
 		else {
 			if (!st.hasMoreTokens()) {
 				// par defaut;
-		//		Enumeration ens = ports.keys();
-//				Iterator iter = ports.values().iterator();
-		//		while (ens.hasMoreElements()) {
-//				while (iter.hasNext()) {
-		//			printInfoPort(Integer.parseInt((String)ens.nextElement())); // plus simple ?
-		//			printInfoPort(((OurSocket)iter.next())); // plus simple ?
-	    //			printInfoPort(ports.(iter.next())); // plus simple ?
-//				}
+				//		Enumeration ens = ports.keys();
+				//			Iterator iter = ports.values().iterator();
+				//		while (ens.hasMoreElements()) {
+				//			while (iter.hasNext()) {
+				//			printInfoPort(Integer.parseInt((String)ens.nextElement())); // plus simple ?
+				//			printInfoPort(((OurSocket)iter.next())); // plus simple ?
+				//			printInfoPort(ports.(iter.next())); // plus simple ?
+				//			}
 				for (int i=0; i<ports.length; ++i)
 					if (ports[i]!=null)
 						printInfoPort(i);
@@ -238,6 +239,18 @@ public class Switch {
 		}
 	}
 	
+	protected void info(StringTokenizer st) {
+		if (!st.hasMoreTokens()) {
+			for (int i=0; i<ports.length; ++i)
+				if (ports[i]!=null)
+					printInfoPort(i);
+		}
+		else {// info du port i
+			int i = Integer.parseInt(st.nextToken());
+			printInfoPort(i);
+		}
+	}
+
 	private void printInfoPort (int i) {
 		StringBuffer sb = new StringBuffer();
 		OurSocket os = getPort(i);
