@@ -6,6 +6,11 @@ package fr.umlv.jap.net.eou;
  * Maitrise info 2003/2004 - module reseau (java)
  */
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
 import java.util.StringTokenizer;
 
 /**
@@ -65,5 +70,63 @@ public class SyntaxAnalyz {
 		return line.startsWith("#");
 	}
 	
+	public static LineNumberReader find(File fich, String elt, String name) {
+		LineNumberReader lnr;
+		String line;
+		try {
+			lnr = new LineNumberReader(new FileReader(fich));
+			while ((line = lnr.readLine())!=null) {
+				if (line.startsWith("["+elt) && line.endsWith(name+"]"))
+					return lnr;
+			}
+		} catch (FileNotFoundException e) {
+			System.err.println ("Fichier <"+fich.getAbsolutePath()+"> introuvable");
+		} catch (IOException e) {
+			System.err.println ("Erreur d'entree sortie pendant la lecture de <"+fich.getAbsolutePath()+"> ");
+		}
+		return null;
+	}
+	
+	public static int readAdminPort (LineNumberReader lnr) {
+		String line;
+		String token = null;
+		try {
+			while ((line = lnr.readLine())!=null)
+			if (line.startsWith("admin-port:")) {
+			StringTokenizer st = new StringTokenizer(line);
+			while (st.hasMoreTokens())
+				token = st.nextToken();
+			return Integer.parseInt(token);
+			}
+		} catch (NumberFormatException e) {
+			System.err.println ("format incorrect : <"+token+"> n\'est pas un nombre ?");
+		} catch (IOException e) {
+			System.err.println ("Erreur d'entree sortie pendant la lecture du port d'administration");
+		}
+		return 0;
+	}
+	
+	public static OurMac readMac(LineNumberReader lnr) {
+		String line;
+		String token = null;
+		try {
+			while ((line = lnr.readLine())!=null)
+				if (line.startsWith("MAC-address:")) {
+					
+					StringTokenizer st = new StringTokenizer(line);
+					while (st.hasMoreTokens())
+						token = st.nextToken();
+					return new OurMac(token);
+					
+				}
+		} catch (IOException e) {
+			System.err.println ("Erreur d'entree sortie pendant la lecture de la mac-adresse");
+		}
+		return null;
+	}
+	
 
+
+
+	
 }
