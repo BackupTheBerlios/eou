@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Network Project
  * 
- * Emulates a bridge
+ * Emulates a bridge/switch for the virtual network
  *
  * @author Yam Jean Paul
  * @author Bruneteau Adrien
@@ -18,49 +18,29 @@ import java.util.*;
 public class Switch {
 
 	// pas d'IP ???
-//	private OurIp ip;
-	
+//	private InetAddress ip;
+	/** IP-address of the switch */
 	private int admin_port;
-	
-//	private String mac_address;
+	/** mac-adress of the switch */
 	private OurMac mac_address;
-	
+	/** name of the Switch */
 	private String name;
-	
+	/** priority of the base camp */
 	private int priority;
 		
-	protected boolean stop = false;
+//	protected boolean stop = false;
 	
 	private ArrayList list; // stocke les trames envoy?es pour pas les renvoyer...
 	
 	private static final int CAPACITY = 100;
-
-//	private ArrayList ports;
-//	private Hashtable ports; // la ya peut ?tre mieux !
-//	private LinkedHashMap ports;
-//	private InetSocketAddress[] ports;
-	private OurPort[] ports;
 	
+	/** storing the ports of the switch */
+	private OurPort[] ports;
+	/** a default maximum number of ports */
 	private static final int MAX_PORT = 9999;
 //	private static final int DEFAULT_ADMIN_PORT = 8000;
-	
-	/* communication */
-//	private MulticastSocket[] ms; // ecoute
-//	private DatagramSocket[] ds;  // envoi
-	
-	
+		
 
-	
-	/** @deprecated not directly ? */
-/*	public Switch(String switch_name, String mac_add, int adminPort) {
-		super();
-		this.name = switch_name;
-		this.mac_address = new OurMac(mac_add);
-		this.admin_port = adminPort;
-	//	ports = new ArrayList(MAX_PORT);'
-//	ports = new Hashtable();
-//		ports = new LinkedHashMap();
-	} */
 	
 	/** Build a new Switch from a configuration file*/
 	public Switch(String name, File fich) {
@@ -71,59 +51,41 @@ public class Switch {
 		list = new ArrayList(CAPACITY);
 		if ((lnr = SyntaxAnalyz.find(fich, "switch", name))!=null) {
 			try {
-				//			lnr.mark(1);
-				
 				this.name = name;
 				for (line = lnr.readLine(); line != null && !line.startsWith("["); line = lnr.readLine()) {
-					//			if (line.startsWith("[switch"))
-					// faire une copie de sauvegarde de "lnr" pour assurer si l'ordre n'est pas le bon ?
 					if (line.startsWith("admin-port:"))
 						this.admin_port = SyntaxAnalyz.readAdminPort(line);
-					// verifier si on n'a pas 0 ?
-					// recup priorite
 					else if (line.startsWith("priority:"))
 						this.priority = SyntaxAnalyz.readPriority(line);
 					else if (line.startsWith("MAC-address:"))
 						this.mac_address = SyntaxAnalyz.readMac(line);
 					else if (line.startsWith("port-"))
 						addPorts(line);
-					// verif null ?
-					//			ports = new ArrayList(MAX_PORT);
-					//			ports = new Hashtable();
-					//			ports = new LinkedHashMap();
-	//				line = lnr.readLine();
 				}
 			}catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.err.println("probleme d'E/S dans la construnction du switch "+name);
 			}
+			System.out.println(this);
 			
-//		}
-		//			test();
-		
-		//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
-		//			try {
-//		ms = new MulticastSocket[MAX_PORT];
-//		ds = new DatagramSocket[MAX_PORT];
-		//			} catch (IOException e) {
-		//				System.err.println("Erreur de connection UDP du switch <"+name+">");
-		//			}
-		System.out.println(this);
-		
-		//TODO creer une connection TCP qui ecoute le port admin
-		runAdmin();
-		
+			//TODO creer une connection TCP qui ecoute le port admin
+			runAdmin();
+		}
+		else
+			System.err.println ("Switch <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
 	}
-	else
-		System.err.println ("Switch <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
 
-}
-
+	
+	/** Returns the name of the switch */
 	public String getName() {
 		return this.name;
 	}
 	
-	
+	/**
+	 *  Tests if the Trame as already been seen by the switch
+	 * 
+	 * @param msg the Trame to verify
+	 * @return true if the trame as already been seen
+	 */
 	private boolean dejaVu(Trame msg) {
 		for (int i=0; i<list.size(); ++i) 
 			if (((Trame)list.get(i)).equals(msg))
@@ -131,7 +93,11 @@ public class Switch {
 		return false;
 	}
 	
-	
+	/**
+	 * Propagate an incoming trame to all the other ports of the switch
+	 * @param msg the incoming trame
+	 * @param from the receiving port
+	 */
 	public void propagate(Trame msg, OurPort from) {
 		for (int i=0; i<ports.length; ++i) {
 			if (ports[i]!=null && !ports[i].equals(from) && !dejaVu(msg)) {
@@ -141,38 +107,27 @@ public class Switch {
 		list.add(msg);
 	}
 	
-	
+	/**
+	 * Add a new port to the switch
+	 * @param line the line of the configuration file containing the port information
+	 */
 	private  void addPorts(String line) {
-//		String line;
 		String token = null;
 		int i;
 		try {
-//			while ((line = lnr.readLine())!=null)
-				if (line.startsWith("port-")) {
-					//		i = Integer.parseInt(line.substring("port-".length(), line.indexOf(":")));
-
-					StringTokenizer st = new StringTokenizer(line);
+			if (line.startsWith("port-")) {
+				StringTokenizer st = new StringTokenizer(line);
+				if (st.hasMoreTokens()) {
+					token = st.nextToken();
+					String tmp = token.substring("port-".length(), token.length()-1);
+					i = Integer.parseInt(tmp);
 					if (st.hasMoreTokens()) {
 						token = st.nextToken();
-						String tmp = token.substring("port-".length(), token.length()-1);
-						i = Integer.parseInt(tmp);
-	//					System.err.println (i);
-						if (st.hasMoreTokens()) {
-							token = st.nextToken();
-	//						System.err.println (token);
-							InetSocketAddress isa = SyntaxAnalyz.parseISA(token);
-	//						System.out.println("ya qq 1 ? "+isa);
-							//			ports.add(i, os);
-	//						System.out.println("port : "+new Integer(i)+"\t socket : "+os);
-							setPort(i, new OurPort(isa, this));
-	//						System.out.println("un");
-	//						this.ds[i] = new DatagramSocket(isa);
-	//						System.out.println("deux");
-	//						this.ms[i] = new MulticastSocket(isa);
-	//						System.out.println("trois");
-						}
+						InetSocketAddress isa = SyntaxAnalyz.parseISA(token);
+						setPort(i, new OurPort(isa, this));
 					}
 				}
+			}
 		} catch (NumberFormatException e) {
 			System.err.println ("format incorrect : <"+token+"> n\'est pas un nombre ?");
 		} catch (IOException e) {
@@ -209,22 +164,32 @@ public class Switch {
 		return true; //commentaires
 	}
 	
+	
+	/**
+	 * Sets a port to a new value (an activate it if it wasn't
+	 * @param num_port the number of the port to change
+	 * @param value the new port value
+	 */
 	public void setPort (int num_port, OurPort value) {
-//		ports.set(num_port, value);
-//		ports.add(num_port, value);
-//		ports.put(new Integer(num_port), value);
 		ports[num_port] = value;
 	}
 	
+	/**
+	 * Returns the port corresponding to a specified number on the switch
+	 * @param num_port the number of the port
+	 * @return the port
+	 */
 	public OurPort getPort (int num_port) {
-//		return (OurSocket)ports.get(num_port);
-//		return (OurSocket)ports.get(new Integer(num_port));
 		return ports[num_port];
 	}
 	
+	
+	/**
+	 * Returns the number of a port on the switch
+	 * @param os the port
+	 * @return the number of the port
+	 */
 	public int getPortNumber (InetSocketAddress os) {
-//		System.out.println("num de port ? "+ )
-//		return ports.hashCode();
 		for (int i=0; i<ports.length; i++)
 			if (os.equals(ports[i]))
 				return i;
@@ -232,40 +197,25 @@ public class Switch {
 	}
 	
 	
+	/** launches the administration of the switch */
 	private void runAdmin() {
 		try {
 			final ServerSocket ss = new ServerSocket(admin_port);
 			System.out.println("ready");
-					while (/*!this.stop &&*/ !Main.stop) {//Idealement, il faurait gerer un pool de threads
-						Socket s = ss.accept();
-						System.out.println("nvelle connection");
-						// un client s'est connect?
-		//				new Thread (new AdminSwitch(name, s)).start();
-//						new Thread (new AdminSwitch(this, s)).start();
-						new Thread (new AdminSwitch(this, s)).start(); // finalement pas threade ?
-					}
-				
+			while (/*!this.stop &&*/ !Main.stop) {//Idealement, il faurait gerer un pool de threads
+				Socket s = ss.accept();
+				System.out.println("nvelle connection");
+				// un client s'est connect?
+				new Thread (new AdminSwitch(this, s)).start();
+			}
 		} catch (IOException e) {
 			System.err.println("pb de connection admin switch");
 		}
-
 	}
 	
-	/**
-	 * @return Returns the ds.
-	 */
-//	public DatagramSocket getDs(int num_port) {
-//		return ds[num_port];
-//	}
 
 	/**
-	 * @return Returns the ms.
-	 */
-//	public MulticastSocket getMs(int num_port) {
-//		return ms[num_port];
-//	}
-
-	/**
+	 * Returns the priority of the switch
 	 * @return Returns the priority.
 	 */
 	public int getPriority() {
@@ -273,6 +223,7 @@ public class Switch {
 	}
 
 	/**
+	 * Sets the priority of the switch
 	 * @param priority The priority to set.
 	 */
 	public void setPriority(int priority) {
@@ -280,27 +231,12 @@ public class Switch {
 	}
 
 	
-	
-/*	
-	protected void admin(Socket sock) {
-		//TODO gerer toute l'admin switch
-		
-		// sinon en faire une classe runnable ?
-		String str;
-		try {
-			InputStream is = sock.getInputStream();
-			while (sock.isConnected()) { // pas sur !
-				// la on a un administrateur connecte, on veut prendre tout ce qu il dit jusqu a sa deconnection...
-//				is.read();
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	}
-*/	
-	
+	/**
+	 * Gets the informations for the switch
+	 * @param st the arguments of the command
+	 * @param output where to write
+	 * @throws IOException 
+	 */
 	protected void info(StringTokenizer st, BufferedWriter output) throws IOException {
 		if (!st.hasMoreTokens()) {
 			for (int i=0; i<ports.length; ++i)
@@ -313,6 +249,12 @@ public class Switch {
 		}
 	}
 
+	/**
+	 * print the informations for one specified port
+	 * @param i theport
+	 * @param output where to write/print
+	 * @throws IOException 
+	 */
 	private void printInfoPort (int i, BufferedWriter output) throws IOException {
 		StringBuffer sb = new StringBuffer();
 		InetSocketAddress os = getPort(i).getIsa();
@@ -324,11 +266,11 @@ public class Switch {
 			sb.append(" Colision domain : "+os);
 			//TODO ajouter pour le spanning tree
 		}
-//		System.out.println(sb);
 		output.write(sb.toString()+"\n");
 		output.flush();
 	}
 	
+	/** Returns a string representation of that switch */
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("##### SWITCH #####\n");
@@ -336,40 +278,14 @@ public class Switch {
 		sb.append("admin-port: "+new Integer(admin_port)+"\n");
 		sb.append("MAC-address: "+mac_address+"\n");
 		sb.append("priority: "+new Integer(priority)+"\n");
-//		Iterator i = ports.iterator();
-/*		Iterator i = ports.values().iterator();
-
-		while (i.hasNext()) {
-			sb.append((OurSocket)i.next()+"\n");
-		} 
-*/
 		for (int i=0; i<ports.length; ++i)
 			if (ports[i]!=null)
 				sb.append(ports[i]+"\n");
-		
 		sb.append("##### switch #####\n");
 		return sb.toString();
 	}
 	
-	public void write(String msg, int port) {
-		
-	}
 	
-//	protected void finalize() throws Throwable {
-//		Main.stop=true;
-//	}
-	
-	
-/*	private void test() {
-		System.out.println(this);
-		System.out.println("## infos : ");
-		this.info("info");
-		System.out.println("## infos 6: ");
-		this.info("info 6");
-		System.out.println("## infos 7: ");
-		this.info("info 7");		
-	}
-	*/
 	// TESTS ...
 	public static void main(String[] args) {
 		int i = 0;
@@ -377,42 +293,22 @@ public class Switch {
 		Switch s = null;
 		if (args.length>1 && args[0].equalsIgnoreCase("-conf")) {
 			f = new File(args[1]);
-//			System.out.println(f.getAbsolutePath());
-			// structure cree
-			// lancer le server d'emulation...
 			i = 2;
 		}
 		else {
 			if (args.length>0) {
 				System.out.println("-> default file");
-//				f = new File("network.conf");
 				f = Main.DEFAULT_CONF_FILE;
-//				i = 0;
 			}
 			else {
 				System.err.println("pas assez d'arguments ");
 				System.exit(-1);
 			}
-		s = new Switch(args[i], f);
+			s = new Switch(args[i], f);
 			
 		}
 		
-	/*	System.out.println(s);
-		System.out.println("## infos : ");
-		s.info("info");
-		System.out.println("## infos 6: ");
-		s.info("info 6");
-		System.out.println("## infos 7: ");
-		s.info("info 7");
-		
-
-		s.stop = true;
-		System.out.println("bye");
-		*/
 	}
-	
-	
-	
 
 
 }

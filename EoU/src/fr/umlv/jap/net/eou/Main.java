@@ -10,6 +10,8 @@ import java.io.*;
 
 /**
  * Network Project
+ * The main class... used for the first tests
+ * Nowadays, it only job is to keep common static values...
  * 
  * @author Jean Paul Yam
  * @author Adrien Bruneteau
@@ -23,15 +25,14 @@ public class Main {
 	private static final String prompt = "net > ";
 	/** if the listening should stop */
 	public static boolean stop = false;
-
+	/** the Syntaxe analyse */
 	private static SyntaxAnalyz sa;
-	
+	/** the default configuration file */
 	public static final File DEFAULT_CONF_FILE = new File("../network.conf");
+//	public static final File DEFAULT_CONF_FILE = new File("network.conf");
 
 
-	/**
-	 * Displays the prompt.
-	 */
+	/** Displays the prompt. */
 	private static void showPrompt() {
 		System.out.print(prompt); // on veut ne pas aller \x{FFFD} la ligne !
 	}
@@ -50,9 +51,7 @@ public class Main {
 		}
 	}
 
-	/**
-	 * The function listening to the keyboard.
-	 */
+	/** The function listening to the keyboard. */
 	private static void listening() {
 		while (!stop) {
 			showPrompt();
@@ -78,11 +77,11 @@ public class Main {
 		stop = true;
 	}
 
-
+	
 	public static void main(String[] args) {
 //		input = new BufferedReader(new InputStreamReader(System.in));
 //		sa = new SyntaxAnalyz();
-//		listening();
+		listening();
 		Switch s1 = new Switch("switch1", DEFAULT_CONF_FILE);
 		Switch s2 = new Switch("switch2", DEFAULT_CONF_FILE);
 		byte[] buf = new byte[1024];

@@ -8,45 +8,29 @@ import java.net.*;
 
 /**
  * Network Project
+ * Manage the simulation of an Host
  *
  * @author Yam Jean Paul
  * @author Bruneteau Adrien
  */
 public class Host {
-
+	/** the name of that host */ 
 	private String name;
-	
+	/** the administration, TCP port */
 	private int admin_port;
-	
-//	private String mac_address;
+	/** the Host Mac-Address */
 	private OurMac mac_address;
-	
-//	private String ip;
-//	private OurIp ip;
+	/** the ip-adress of the Host */
 	private InetAddress ip;
-	
-//	private InetSocketAddress link;
+	/** the Socket for the Link */
 	private OurPort link;
-	
+	/** the Thread for the administration */
 	private Thread job_admin;
 	
 	//TODO ajouter une table ARP
 	
-	// communication
-//	private MulticastSocket mcs; // ecoute ?
-//	private DatagramSocket dgs; // envoie ?
 	
 	
-	/** @deprecated pas de creation directe ? */
-/*	public Host(String name, int admin_port, String macAddr, String ip, OurSocket link) {
-		super();
-		this.name = name;
-		this.admin_port = admin_port;
-		this.mac_address = new OurMac(macAddr);
-		this.ip = new OurIp(ip);
-		this.link = link;
-	}
-*/
 	/** Default constructor */
 	public Host(String name, File fich) {
 		super();
@@ -57,7 +41,6 @@ public class Host {
 			try {
 				line = lnr.readLine();
 				while (line != null && !line.startsWith("[")) {
-					
 					if (line.startsWith("admin-port:"))
 						this.admin_port = SyntaxAnalyz.readAdminPort(line);
 					else if (line.startsWith("MAC-address:"))
@@ -68,75 +51,50 @@ public class Host {
 						this.link = new OurPort(SyntaxAnalyz.readLink(line), this);
 					line = lnr.readLine();
 				}
-				
 			} catch (IOException e) {
 				System.err.println("Erreur d'E/S sur la construction de l'hote");
 			}
-			
-			//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
-		//	new Thread() {
-		//		public void run() {
-		//			try {
-		//				survey();
-		//			} catch (IOException e) {
-		//				System.err.println("Erreur d'E/S sur l\'ecoute de l'hote");
-		//			}
-		//		}
-		//	}.start();
-
-			
-			//TODO creer une connection TCP qui ecoute le port admin
+			/* creation de la socket TCP pour l'administration */
 			runAdmin();
-			
 		}
 		else
 			System.err.println ("Host <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
-		
 	}
 	
+	
+	/** Launch the administration services */
 	private void runAdmin() {
 		try {
 			final ServerSocket ss = new ServerSocket(admin_port);
 			System.out.println("ready");
-					while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
-						Socket s = ss.accept();
-						System.out.println("connection");
-						// un client s'est connect?
-		//				new Thread (new AdminSwitch(name, s)).start();
-						(job_admin = new Thread (new AdminHost(this, s))).start();
-					}
-				
+			while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
+				Socket s = ss.accept();
+				System.out.println("connection");
+				(job_admin = new Thread (new AdminHost(this, s))).start();
+			}
 		} catch (IOException e) {
 			System.err.println("pb de connection admin switch");
 		}
-
 	}
 	
-//	protected void survey() throws IOException {
-//		//TODO une boucle ?
-//		byte[] buf = new byte[1024];
-//		DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
-////		DatagramPacket dgp = new DatagramPacket(buf, 0, link);
-//		dgs.send(dgp);
-//		dgp.setLength(1024);
-//		dgs.receive(dgp);
-//		System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
-//		//TODO preciser affichage + vers le term...
-//		
-//	}
-
+	
+	/** @deprecated */
+	//TODO virer
 	protected void ping(OurMac dest_mac) {
 			 System.out.println("je veux envoyer "+" a "+dest_mac);
 	}
 
+	
+	/**
+	 * Tests if the mac is the same as the one of the Host
+	 * @param mac the mac-address to compare
+	 * @return true if the specified mac is the same as the Host's one
+	 */
 	public boolean isMyMac(OurMac mac) {
 		return this.mac_address.equals(mac)	;
 	}
 	
 	
-	//TODO voir pour les accesseurs necessaires
-	
-
 	/**
 	 * @return Returns the name.
 	 */
@@ -181,7 +139,9 @@ public class Host {
 		return mac_address;
 	}
 	
+	/**Treatment of a trame by the Host */
 	public void treatTrame(Trame msg) {
+		//TODO
 		System.out.println ("je suis "+name+" et je recois..."+msg.getTrame());
 	}
 	
@@ -197,33 +157,28 @@ public class Host {
 		sb.append("##### host #####\n");
 		return sb.toString();
 	}
-	
-	// TESTS
+
+
+	/** main methode */
 	public static void main(String[] args) {
-//		int i;
 		File f;
 		Host h;
 		if (args.length>1 && args[0].equalsIgnoreCase("-conf")) {
 			f = new File(args[1]);
-//			System.out.println(f.getAbsolutePath());
 			h = new Host(args[2], f);
 			System.out.println(h);
 			// structure cree
 			// lancer le server d'emulation...
-			
 		}
 		else {
 			if (args.length>0) {
 				System.out.println("-> default file ");
-	//			f = new File("network.conf");
 				f = Main.DEFAULT_CONF_FILE;
 				h = new Host(args[0], f);
 			}
 			else 
 				System.err.println("pas assez d'arguments ");
-			
 		}
-			
 	}
 
 	/* (non-Javadoc)
