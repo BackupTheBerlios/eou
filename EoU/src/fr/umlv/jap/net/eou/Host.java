@@ -63,7 +63,7 @@ public class Host {
 					else if (line.startsWith("IP-address:"))
 						this.ip = SyntaxAnalyz.readIp(line);
 					else if (line.startsWith("link:"))
-						this.link = new OurPort(SyntaxAnalyz.readLink(line));
+						this.link = new OurPort(SyntaxAnalyz.readLink(line), this);
 					line = lnr.readLine();
 				}
 				

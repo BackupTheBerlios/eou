@@ -50,7 +50,7 @@ public class Trame {
 		this.type = type;
 		this.opCode = opCode;
 		this.msg = msg;
-		System.out.println("trame cree : "+this);
+		System.out.println("trame cree : "+this.getTrame());
 	}
 
 	/**
@@ -109,6 +109,15 @@ public class Trame {
 	
 	public OurMac getSrc() {
 		return src;	
+	}
+	
+	public boolean isPingAnswer(Trame t) {
+		if (this.type==TYPE_PING && t.type==TYPE_PING)
+			if (this.opCode==OPCODE_ANSWER && t.opCode==OPCODE_REQUEST) 
+				if (this.dest==t.dest && this.src==t.src && this.msg==t.msg)
+					return true;
+		System.err.println ("trames invalides");
+		return false;
 	}
 	
 	private String getTrame() {

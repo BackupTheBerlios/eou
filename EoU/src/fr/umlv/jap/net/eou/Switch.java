@@ -140,7 +140,7 @@ public class Switch {
 							InetSocketAddress isa = SyntaxAnalyz.parseISA(token);
 							//			ports.add(i, os);
 	//						System.out.println("port : "+new Integer(i)+"\t socket : "+os);
-							setPort(i, new OurPort(isa));
+							setPort(i, new OurPort(isa, this));
 	//						System.out.println("un");
 	//						this.ds[i] = new DatagramSocket(isa);
 	//						System.out.println("deux");
@@ -369,7 +369,7 @@ public class Switch {
 				System.err.println("pas assez d'arguments ");
 				System.exit(-1);
 			}
-				
+				System.out.println("HEY !!");
 		s = new Switch(args[i], f);
 			
 		}

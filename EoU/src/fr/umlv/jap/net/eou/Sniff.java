@@ -23,7 +23,8 @@ public class Sniff {
 			this.sock = SyntaxAnalyz.parseISA(str);
 			new Thread() {
 				public void run() {	
-					survey(); //TODO
+					while (!Main.stop)
+						survey(); //TODO	
 				}
 			}.start();
 		} catch (UnknownHostException e) {
@@ -35,11 +36,12 @@ public class Sniff {
 			//TODO une boucle ?
 			byte[] buf = new byte[1024];
 			try {
-				DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
+//				DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
+				MulticastSocket ms = new MulticastSocket(); // num de port choisi par java
 				DatagramPacket dgp = new DatagramPacket(buf, 0, sock);
-				dgs.send(dgp);
+	//			dgs.send(dgp);
 				dgp.setLength(1024);
-				dgs.receive(dgp);
+				ms.receive(dgp);
 				System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
 				//TODO preciser affichage + vers le term...
 			} catch (IOException ioe) {
