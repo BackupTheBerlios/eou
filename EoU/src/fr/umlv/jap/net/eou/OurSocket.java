@@ -39,6 +39,12 @@ public class OurSocket {
 		return ip+":"+new Integer(port).toString();
 	}
 
+	public boolean equals(OurSocket os) {
+		return (this.toString().compareTo(os.toString())==0);
+		// pas beau, faire mieux ?
+	}
+	
+	
 	
 	// TESTS
 	public static void main(String[] args) {
