@@ -5,6 +5,7 @@ package fr.umlv.jap.net.eou;
 
 import java.io.*;
 import java.net.*;
+import java.util.Date;
 
 /**
  * Network Project
@@ -26,9 +27,14 @@ public class Host {
 	private OurPort link;
 	/** the Thread for the administration */
 	private Thread job_admin;
+	/** the last unreceived ping trame */ 
+	private Trame lastPing;
+	/** starting date of a ping */
+	private Date start_ping = null;
+	/** the number of the ping */
+	private static int count = 0;
 	
-	//TODO ajouter une table ARP
-	
+	AdminHost admin_host = null;
 	
 	
 	/** Default constructor */
@@ -52,7 +58,7 @@ public class Host {
 					line = lnr.readLine();
 				}
 			} catch (IOException e) {
-				System.err.println("Erreur d'E/S sur la construction de l'hote");
+	//			System.err.println("Erreur d'E/S sur la construction de l'hote");
 			}
 			/* creation de la socket TCP pour l'administration */
 			runAdmin();
@@ -66,11 +72,9 @@ public class Host {
 	private void runAdmin() {
 		try {
 			final ServerSocket ss = new ServerSocket(admin_port);
-			System.out.println("ready");
 			while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
 				Socket s = ss.accept();
-				System.out.println("connection");
-				(job_admin = new Thread (new AdminHost(this, s))).start();
+				(job_admin = new Thread (admin_host = new AdminHost(this, s))).start();
 			}
 		} catch (IOException e) {
 			System.err.println("pb de connection admin switch");
@@ -78,12 +82,6 @@ public class Host {
 	}
 	
 	
-	/** @deprecated */
-	//TODO virer
-	protected void ping(OurMac dest_mac) {
-			 System.out.println("je veux envoyer "+" a "+dest_mac);
-	}
-
 	
 	/**
 	 * Tests if the mac is the same as the one of the Host
@@ -120,7 +118,7 @@ public class Host {
 	 * @param link The link to set.
 	 */
 	public void setLink(InetSocketAddress link) throws IOException {
-		this.link = new OurPort(link);
+		this.link = new OurPort(link, this);
 	}
 
 	/**
@@ -140,10 +138,63 @@ public class Host {
 	}
 	
 	/**Treatment of a trame by the Host */
-	public void treatTrame(Trame msg) {
-		//TODO
-		System.out.println ("je suis "+name+" et je recois..."+msg.getTrame());
+	public void treatTrame(Trame msg) throws IOException {
+		if (is4mePingRequest(msg)) {
+			Trame answer = msg.PingAnswer();
+			byte[] buf = msg.getBytes();
+			DatagramPacket dp = new DatagramPacket(buf, buf.length, getLink().getIsa());
+			DatagramSocket ds = new DatagramSocket();
+			ds.send(dp);
+		}
+		else if (lastPing != null && lastPing.isPingAnswer(msg)) {
+			// TODO bonne sortie
+			System.err.println(
+				" Reception Ping Duree ecoulee : "
+					+ new Long(new Date().getTime() - start_ping.getTime())
+						.toString()
+					+ " ms");
+			admin_host.output.write(
+				" Reception Ping Duree ecoulee : "
+					+ new Long(new Date().getTime() - start_ping.getTime())
+						.toString()
+					+ " ms");
+			admin_host.output.flush();
+		}
+		
+		//else ignore
+		
 	}
+
+	private boolean is4mePingRequest(Trame msg) {
+		if (msg.isPing() && !msg.isAnswer()) {
+			return (msg.getDest().equals(mac_address));
+		}
+		return false;
+	}
+
+	private boolean is4me(Trame msg) {
+			return (msg.getDest().equals(mac_address));
+	}
+
+	/**
+	 * Launches the Ping
+	 * @param dest_mac destination Mac-Address of the Ping
+	 * @param src_mac source Mac-Address of the Ping
+	 * @throws IOException
+	 */
+	protected void doPing(OurMac dest_mac) throws IOException {
+			lastPing = new Trame(	dest_mac,
+															mac_address,
+															Trame.TYPE_PING,
+															Trame.OPCODE_REQUEST,
+															"<<pong>>"+new Integer(count++));
+			byte[] buf = lastPing.getBytes();
+			DatagramPacket dp = new DatagramPacket(buf, buf.length, getLink().getIsa());
+			DatagramSocket ds = new DatagramSocket();
+			start_ping = new Date();
+			ds.send(dp);
+	}
+	
 	
 	
 	public String toString() {

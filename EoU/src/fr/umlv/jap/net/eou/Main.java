@@ -34,7 +34,7 @@ public class Main {
 
 	/** Displays the prompt. */
 	private static void showPrompt() {
-		System.out.print(prompt); // on veut ne pas aller \x{FFFD} la ligne !
+		System.out.print(prompt); // on veut ne pas aller a la ligne !
 	}
 
 	/**
@@ -73,18 +73,15 @@ public class Main {
 	 * Tells the function to stop.
 	 */
 	private static void stop() {
-		// passer public si on g\x{FFFD}re le stop externe
 		stop = true;
 	}
 
 	
 	public static void main(String[] args) {
-//		input = new BufferedReader(new InputStreamReader(System.in));
-//		sa = new SyntaxAnalyz();
 		listening();
-		Switch s1 = new Switch("switch1", DEFAULT_CONF_FILE);
-		Switch s2 = new Switch("switch2", DEFAULT_CONF_FILE);
-		byte[] buf = new byte[1024];
-		s1.getPort(3).write(buf);
+//		Switch s1 = new Switch("switch1", DEFAULT_CONF_FILE);
+//		Switch s2 = new Switch("switch2", DEFAULT_CONF_FILE);
+//		byte[] buf = new byte[1024];
+//		s1.getPort(3).write(buf);
 	}
 }

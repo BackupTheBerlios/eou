@@ -17,8 +17,6 @@ import java.util.*;
  */
 public class Switch {
 
-	// pas d'IP ???
-//	private InetAddress ip;
 	/** IP-address of the switch */
 	private int admin_port;
 	/** mac-adress of the switch */
@@ -28,9 +26,8 @@ public class Switch {
 	/** priority of the base camp */
 	private int priority;
 		
-//	protected boolean stop = false;
 	
-	private ArrayList list; // stocke les trames envoy?es pour pas les renvoyer...
+	private ArrayList list; // stocke les trames envoyees pour pas les renvoyer...
 	
 	private static final int CAPACITY = 100;
 	
@@ -38,7 +35,6 @@ public class Switch {
 	private OurPort[] ports;
 	/** a default maximum number of ports */
 	private static final int MAX_PORT = 9999;
-//	private static final int DEFAULT_ADMIN_PORT = 8000;
 		
 
 	
@@ -65,9 +61,6 @@ public class Switch {
 			}catch (IOException e) {
 				System.err.println("probleme d'E/S dans la construnction du switch "+name);
 			}
-			System.out.println(this);
-			
-			//TODO creer une connection TCP qui ecoute le port admin
 			runAdmin();
 		}
 		else
@@ -136,34 +129,6 @@ public class Switch {
 	}
 	
 	
-
-	/**
-	 * Analyse the command line.
-	 * 
-	 * @param line line of string to analyse.
-	 * @deprecated
-	 */
-	protected boolean analyse(String line) {
-		if (SyntaxAnalyz.isComment(line)) {
-			StringTokenizer args = new StringTokenizer(line);
-			
-			if (args.hasMoreElements()) {
-				String token = args.nextToken();
-				System.out.println ("ACTION");
-				System.out.println(token);
-				while (args.hasMoreTokens()) 
-					System.out.println(args.nextToken());
-				return true;
-			} 
-			else {
-			System.out.println("ligne vide ?");
-				return false;
-			}
-		}
-		System.out.println ("com");
-		return true; //commentaires
-	}
-	
 	
 	/**
 	 * Sets a port to a new value (an activate it if it wasn't
@@ -201,11 +166,8 @@ public class Switch {
 	private void runAdmin() {
 		try {
 			final ServerSocket ss = new ServerSocket(admin_port);
-			System.out.println("ready");
 			while (/*!this.stop &&*/ !Main.stop) {//Idealement, il faurait gerer un pool de threads
 				Socket s = ss.accept();
-				System.out.println("nvelle connection");
-				// un client s'est connect?
 				new Thread (new AdminSwitch(this, s)).start();
 			}
 		} catch (IOException e) {
@@ -264,7 +226,6 @@ public class Switch {
 		else {
 			sb.append("up\n");
 			sb.append(" Colision domain : "+os);
-			//TODO ajouter pour le spanning tree
 		}
 		output.write(sb.toString()+"\n");
 		output.flush();
@@ -304,9 +265,9 @@ public class Switch {
 				System.err.println("pas assez d'arguments ");
 				System.exit(-1);
 			}
-			s = new Switch(args[i], f);
-			
 		}
+		s = new Switch(args[i], f);
+			
 		
 	}
 

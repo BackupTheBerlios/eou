@@ -37,9 +37,6 @@ public class Trame {
 	  
 	 */
 
-	/* representation en string pour des raisons pratiques */
-	//TODO si le reste marche, passer ? du binaire...
-
 	/**
 	 * Constructor for Trame.
 	 */
@@ -50,7 +47,6 @@ public class Trame {
 		this.type = type;
 		this.opCode = opCode;
 		this.msg = msg;
-		System.out.println("trame cree (n) : "+this.getTrame());
 	}
 
 	/**
@@ -58,18 +54,19 @@ public class Trame {
 	 */
 	public Trame(String str) {
 		super();
-		StringTokenizer st = new StringTokenizer(str, SEPARATOR);
-//		if (st.hasMoreTokens()) { // TODO caser des verifs...
-		this.dest = new OurMac(st.nextToken());
-		this.src = new OurMac(st.nextToken());
-		this.type = Integer.parseInt(st.nextToken());
-		this.opCode = Integer.parseInt(st.nextToken());
-		this.msg = st.nextToken();
-		System.out.println("trame cree (s) : "+this.getTrame());
+		try {
+			StringTokenizer st = new StringTokenizer(str, SEPARATOR);
+			this.dest = new OurMac(st.nextToken());
+			this.src = new OurMac(st.nextToken());
+			this.type = Integer.parseInt(st.nextToken());
+			this.opCode = Integer.parseInt(st.nextToken());
+			this.msg = st.nextToken();
+		} catch (Exception e) {
+			System.err.println("format de trame inconnu");
+		}
 	}
 
-	// methode getbyte - > byte[] pour le datagram packet
-	
+	/*
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("\nDestination : "+dest+
@@ -83,7 +80,23 @@ public class Trame {
 			sb.append("\nOp : request");
 		else 
 		sb.append("\nOp : "+new Integer(opCode));
-//		sb.append("\n"):
+		return sb.toString();
+	}
+	
+	*/
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("[S] ");
+		sb.append("From : "+src+"\tTo : "+dest);
+		if (type==TYPE_PING)
+					sb.append("\tType : Ping");
+		else sb.append("\tType : "+new Integer(type));
+		if (opCode==OPCODE_ANSWER) 
+			sb.append("\tanswer");
+		else if (opCode==OPCODE_REQUEST) 
+			sb.append("\trequest");
+		else 
+		sb.append("\tOp : "+new Integer(opCode));
 		return sb.toString();
 	}
 	
@@ -111,12 +124,26 @@ public class Trame {
 		return src;	
 	}
 	
+	public Trame PingAnswer() {
+//		Trame answer = null;
+		if (opCode==OPCODE_ANSWER)
+			System.err.println("deja une reponse... pb !");
+		else {
+//			answer = new Trame(getTrame());
+			opCode = OPCODE_ANSWER;	
+		} 
+		return this;
+	}
+	
 	public boolean isPingAnswer(Trame t) {
-		if (this.type==TYPE_PING && t.type==TYPE_PING)
-			if (this.opCode==OPCODE_ANSWER && t.opCode==OPCODE_REQUEST) 
-				if (this.dest==t.dest && this.src==t.src && this.msg==t.msg)
+		if (this.type==TYPE_PING && t.type==TYPE_PING) {
+			if (this.opCode==OPCODE_REQUEST && t.opCode==OPCODE_ANSWER) { 
+				if (this.dest.toString().equalsIgnoreCase(t.dest.toString()) && this.src.toString().equalsIgnoreCase(t.src.toString()) /*&& this.msg.toString().equalsIgnoreCase(t.msg.toString())*/) {
 					return true;
-		System.err.println ("trames invalides");
+				}
+			}
+		}
+		// trames invalides
 		return false;
 	}
 	
@@ -130,7 +157,6 @@ public class Trame {
 	}
 	
 	public byte[] getBytes() {
-	//	return this.toString().getBytes();	
 		return this.getTrame().getBytes();	
 	}
 	

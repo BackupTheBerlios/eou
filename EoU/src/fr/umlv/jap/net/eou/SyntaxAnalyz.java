@@ -197,7 +197,6 @@ public class SyntaxAnalyz {
 	 */
 	public static InetSocketAddress parseISA(String sock) throws UnknownHostException {
 		StringTokenizer st = new StringTokenizer(sock, ":");
-		//TODO ajouter verif ...
 		int port /*= DEFAULT_PORT*/;
 		InetAddress ip = InetAddress.getByName(st.nextToken());
 		try {

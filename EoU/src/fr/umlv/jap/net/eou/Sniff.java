@@ -26,30 +26,25 @@ public class Sniff {
 			(job = new Thread() {
 				public void run() {	
 					while (!Main.stop)
-						survey(); //TODO	
+						survey(); 
 				}
 			}).start();
 		} catch (UnknownHostException e) {
-		System.err.println("Hote inconnu pour le sniff");
+			System.err.println("Hote inconnu pour le sniff");
 		}
 	}
 	
-		protected void survey() /*throws IOException*/ {
-			//TODO une boucle ?
+		protected void survey() {
 			byte[] buf = new byte[1024];
 			try {
-//				DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
-				MulticastSocket ms = new MulticastSocket(); // num de port choisi par java
-				System.out.println("sock : "+sock);
-				DatagramPacket dgp = new DatagramPacket(buf, 0, sock);
-	//			dgs.send(dgp);
+				MulticastSocket ms = new MulticastSocket(sock.getPort());
+				ms.joinGroup(sock.getAddress()); 
+				DatagramPacket dgp = new DatagramPacket(buf, 0);
 				dgp.setLength(1024);
-				System.out.println("Sniff pret a lire");
 				ms.receive(dgp);
-				System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
-				//TODO preciser affichage + vers le term...
+				System.out.println(new Trame(new String(dgp.getData(), 0, dgp.getLength())));
 			} catch (IOException ioe) {
-				System.err.println("Probleme d'E/S pour le sniff");
+//				System.err.println("Probleme d'E/S pour le sniff");
 			}
 		}
 		

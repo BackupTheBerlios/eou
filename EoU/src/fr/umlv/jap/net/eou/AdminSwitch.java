@@ -9,26 +9,22 @@ import java.util.StringTokenizer;
 
 /**
  * Network Project
- *
+ *	 Switch Administrator
  * @author Yam Jean Paul
  * @author Bruneteau Adrien
  */
 public class AdminSwitch implements Runnable {
-
+	/** the administration TCP socket */
 	private Socket sock;
-	
-//	private ServerSocket ss;
-	
-//	private String name;
+	/** the parent switch */
 	private Switch sw;
-	
+	/** where to write outputs */
 	private BufferedWriter output;
 	
 	/** default constructor */
 	public AdminSwitch(Switch sw, Socket s) {
 		super();
 		this.sock = s;
-//		this.ss = ss;
 		this.sw = sw;
 	}
 
@@ -38,36 +34,31 @@ public class AdminSwitch implements Runnable {
 	public void run() {
 		// la connection est etablie on recuper les flots;
 		try {
-//			System.out.println("yop");
-//			Socket s = ss.accept();
-//			System.out.println("hey");
-
 			BufferedReader is = new BufferedReader (new InputStreamReader(sock.getInputStream()));
-//			BufferedWriter os = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
 			output = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
 			
 			String str = "";
-			output.write("Administration of the switch <"+sw.getName()+">...\n\tYour command : \n");
+			output.write("Administration of the switch <"+sw.getName()+">...\n\tYour command : ");
 			output.flush();
-			System.out.println(str);
 			while ((str = is.readLine())!=null) {
-				System.err.println("admin switch lis : "+str);
-//				output.write(str.toUpperCase()); //TODO faire traitement...
-//				output.write("\n");
-//				output.flush();
 				analyse(str);
 			}
 		} catch (IOException e) {
-			System.err.println("erreur d'entree sortie dans l'admin du switch");
+			// deconnection
 		}
 	}
 	
+	
+	/**
+	 * Analyse the command for the administrator 
+	 * @param args argument of the command
+	 * @throws IOException
+	 */
 	private void analyse(String args) throws IOException {
 		StringTokenizer st = new StringTokenizer(args);
 		String cmd;
 		if (st.hasMoreTokens()) {
 			cmd = st.nextToken();
-//			System.out.println(cmd);
 			if (cmd.equalsIgnoreCase("info"))
 				adminInfo(st);
 			else if (cmd.equalsIgnoreCase("priority")) {
@@ -77,17 +68,6 @@ public class AdminSwitch implements Runnable {
 				adminPort(st);
 			else if (cmd.equalsIgnoreCase("quit")) 
 				sock.close();
-			else if (cmd.equalsIgnoreCase("ping")) 
-				adminPing(st);
-/*			else if (cmd.equalsIgnoreCase("stop")) {
-				sw.stop=true;
-				sock.close();
-				System.out.println("Switch <"+sw.getName()+"> arrete");
-			}*/
-			
-			
-			// else //TODO gerer les autres cmd
-//			else System.out.println("Commande <"+cmd+"> de config de sitch non reconnue");
 			else {
 				output.write("Command <"+cmd+"> of switch configuration unknown\n");
 				output.flush();
@@ -95,22 +75,43 @@ public class AdminSwitch implements Runnable {
 		}
 	}
 	
+	
+	/**
+	 * 
+	 * Treatment for the Info command
+	 * @param st the arguments of that command
+	 * @throws IOException
+	 */
 	private void adminInfo (StringTokenizer st) throws IOException {
 		sw.info(st, output);
 	}
 	
+	
+	/**
+	 * 
+	 * Treatment for the Priority command
+	 * @param st the arguments of that command
+	 * @throws IOException
+	 */
 	private void adminPriority(StringTokenizer st) throws IOException {
 		if (st.hasMoreTokens()) {
 			sw.setPriority(Integer.parseInt(st.nextToken()));
 			output.write("New switch priority <"+sw.getName()+"> : "+ new Integer(sw.getPriority())+"\n");
 			output.flush();
 		}
-		else 
-//		System.out.println("Priorite du switch <"+sw.getName()+"> : "+ new Integer(sw.getPriority()));
-		output.write("Switch priority <"+sw.getName()+"> : "+ new Integer(sw.getPriority())+"\n");
-		output.flush();
+		else {
+				output.write("Switch priority <"+sw.getName()+"> : "+ new Integer(sw.getPriority())+"\n");
+				output.flush();
+		}
 	}
 	
+	
+	/**
+	 * 
+	 * Treatment for the Port command
+	 * @param st the arguments of that command
+	 * @throws IOException
+	 */
 	private void adminPort(StringTokenizer st) throws IOException {
 		String str = "";
 		try {
@@ -122,8 +123,8 @@ public class AdminSwitch implements Runnable {
 					if (str.equalsIgnoreCase("down")) {
 						sw.setPort(i, null);
 					}
-					else /*if (str.startsWith("["))*/ {
-						sw.setPort(i, new OurPort(SyntaxAnalyz.parseISA(str)));
+					else {
+						sw.setPort(i, new OurPort(SyntaxAnalyz.parseISA(str), sw));
 					}
 				}
 				else {
@@ -139,20 +140,6 @@ public class AdminSwitch implements Runnable {
 			output.write("invalid value <"+Integer.parseInt(str)+">, integer expected\n");
 			output.flush();
 		}
-	}
-	
-		/** @deprecated */
-		private void adminPing(StringTokenizer st) throws IOException {
-		if (st.hasMoreTokens()) {
-			System.out.println("on ping ?");
-			int num_port = Integer.parseInt(st.nextToken());
-			OurMac dest_mac = new OurMac(st.nextToken());
-			OurMac origin_mac = new OurMac("depart");
-			Trame msg = new Trame(dest_mac, origin_mac, Trame.TYPE_PING, Trame.OPCODE_REQUEST, "<<pong>>");
-			sw.getPort(num_port).write(msg.getBytes());
-		}
-		else 
-			System.out.println("Ping sans args ?");
 	}
 
 	
