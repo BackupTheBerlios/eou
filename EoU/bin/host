@@ -1,0 +1,1 @@
+cd ../classes/;java fr.umlv.jap.net.eou.Host "$@";cd -;
