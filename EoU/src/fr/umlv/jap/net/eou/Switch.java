@@ -181,11 +181,12 @@ public class Switch {
 			final ServerSocket ss = new ServerSocket(admin_port);
 			System.err.println("yop");
 					while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
-						Socket s = ss.accept();
-						System.err.println("hey");
+//						Socket s = ss.accept();
+//						System.err.println("hey");
 						// un client s'est connecté
 		//				new Thread (new AdminSwitch(name, s)).start();
-						new Thread (new AdminSwitch(this, s)).start();
+//						new Thread (new AdminSwitch(this, s)).start();
+						new Thread (new AdminSwitch(this, ss)).start();
 					}
 				
 		} catch (IOException e) {

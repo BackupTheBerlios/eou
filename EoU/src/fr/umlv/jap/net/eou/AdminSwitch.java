@@ -17,15 +17,18 @@ public class AdminSwitch implements Runnable {
 
 	private Socket sock;
 	
+	private ServerSocket ss;
+	
 //	private String name;
 	private Switch sw;
 	
 	private BufferedWriter output;
 	
 	/** default constructor */
-	public AdminSwitch(Switch sw, Socket s) {
+	public AdminSwitch(Switch sw, ServerSocket ss) {
 		super();
-		this.sock = s;
+	//	this.sock = s;
+		this.ss = ss;
 		this.sw = sw;
 	}
 
@@ -35,6 +38,9 @@ public class AdminSwitch implements Runnable {
 	public void run() {
 		// la connection est etablie on recuper les flots;
 		try {
+			Socket s = ss.accept();
+			System.err.println("hey");
+
 			BufferedReader is = new BufferedReader (new InputStreamReader(sock.getInputStream()));
 //			BufferedWriter os = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
 			output = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
