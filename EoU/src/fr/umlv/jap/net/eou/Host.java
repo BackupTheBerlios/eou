@@ -1,10 +1,9 @@
 package fr.umlv.jap.net.eou;
 
-import java.io.File;
-import java.io.LineNumberReader;
-
 /* Maitrise info - Reseau - projet */
 /* Created on 9 mars 2004 */
+
+import java.io.*;
 
 /**
  * Network Project
@@ -26,8 +25,10 @@ public class Host {
 	
 	private OurSocket link;
 	
+	//TODO ajouter une table ARP
 	
-	/** Default constructor */
+	
+	/** @deprecated pas de creation directe ? */
 	public Host(String name, int admin_port, String macAddr, String ip, OurSocket link) {
 		super();
 		this.name = name;
@@ -37,22 +38,28 @@ public class Host {
 		this.link = link;
 	}
 
+	/** Default constructor */
 	public Host(String name, File fich) {
 		super();
 		LineNumberReader lnr;
 		String line;
 		if ((lnr = SyntaxAnalyz.find(fich, "host", name))!=null) {
 			this.name = name;
-		this.admin_port = SyntaxAnalyz.readAdminPort(lnr);
-		this.mac_address = SyntaxAnalyz.readMac(lnr);
-		this.ip = SyntaxAnalyz.readIp(lnr);
-		this.link = SyntaxAnalyz.readLink(lnr);
+			this.admin_port = SyntaxAnalyz.readAdminPort(lnr);
+			this.mac_address = SyntaxAnalyz.readMac(lnr);
+			this.ip = SyntaxAnalyz.readIp(lnr);
+			this.link = SyntaxAnalyz.readLink(lnr);
+			
+			//TODO creer une connection TCP qui ecoute le port admin
+			
+			//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
+
 		}
 		else
 			System.err.println ("Host <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
-
+		
 	}
-
+	
 	//TODO voir pour les accesseurs necessaires
 	
 	
@@ -70,18 +77,27 @@ public class Host {
 	
 	// TESTS
 	public static void main(String[] args) {
-		int i;
+//		int i;
+		File f;
+		Host h;
 		if (args.length>1 && args[0].equalsIgnoreCase("-conf")) {
-			File f = new File(args[1]);
+			f = new File(args[1]);
 //			System.out.println(f.getAbsolutePath());
-			Host h = new Host(args[2], f);
+			h = new Host(args[2], f);
 			System.out.println(h);
 			// structure cree
 			// lancer le server d'emulation...
 			
 		}
 		else {
-			System.err.println("pas assez d'arguments");
+			if (args.length>0) {
+				System.out.println("-> default");
+				f = new File("network.conf");
+				h = new Host(args[0], f);
+			}
+			else 
+				System.err.println("pas assez d'arguments ");
+			
 		}
 			
 	}

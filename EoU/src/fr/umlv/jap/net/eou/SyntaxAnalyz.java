@@ -6,11 +6,7 @@ package fr.umlv.jap.net.eou;
  * Maitrise info 2003/2004 - module reseau (java)
  */
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.LineNumberReader;
+import java.io.*;
 import java.util.StringTokenizer;
 
 /**

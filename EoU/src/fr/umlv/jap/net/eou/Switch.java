@@ -4,6 +4,7 @@ package fr.umlv.jap.net.eou;
 /* Created on 9 mars 2004 */
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -29,7 +30,7 @@ public class Switch {
 //	private int priority;
 	
 //	private ArrayList ports;
-	private Hashtable ports;
+	private Hashtable ports; // la ya peut être mieux !
 //	private LinkedHashMap ports;
 	
 //	private static final int DEFAULT_ADMIN_PORT = 8000;
@@ -37,7 +38,7 @@ public class Switch {
 //	private static final int MAX_PORT = 9999;
 	
 	
-	/** Build a new Switch */
+	/** @deprecated not directly ? */
 	public Switch(String switch_name, String mac_add, int adminPort) {
 		super();
 		this.name = switch_name;
@@ -47,7 +48,7 @@ public class Switch {
 		ports = new Hashtable();
 	}
 	
-	/** Build a new Switch */
+	/** Build a new Switch from a configuration file*/
 	public Switch(String name, File fich) {
 		super();
 		LineNumberReader lnr;
@@ -64,7 +65,11 @@ public class Switch {
 //			ports = new ArrayList(MAX_PORT);
 			ports = new Hashtable();
 			addPorts(lnr);
+
+			//TODO creer une connection TCP qui ecoute le port admin
+			runAdmin();
 			
+			//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
 		}
 		else
 			System.err.println ("Switch <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
@@ -148,6 +153,36 @@ public class Switch {
 	}
 	
 	
+	private void runAdmin() {
+		try {
+			final ServerSocket ss = new ServerSocket(admin_port);
+		new Thread() {
+			public void run() {
+				while (true) { //Idealement, il faurait gerer un pool de threads
+					try {
+						Socket s = ss.accept();
+					// un client s'est connecté
+						admin(s); // pas de threads
+					} catch (IOException e) {
+						System.err.println("pb de connection d un client sur admin switch");
+					}
+				}
+
+			}
+		}.start();
+		} catch (IOException e) {
+			System.err.println("pb de connection admin switch");
+		}
+
+	}
+	
+	
+	protected void admin(Socket s) {
+		//TODO gerer toute l'admin switch
+		
+		// sinon en faire une classe runnable ?
+	}
+	
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -168,18 +203,28 @@ public class Switch {
 	
 	// TESTS ...
 	public static void main(String[] args) {
-		int i;
+//		int i;
+		File f;
+		Switch s;
 		if (args.length>1 && args[0].equalsIgnoreCase("-conf")) {
-			File f = new File(args[1]);
+			f = new File(args[1]);
 //			System.out.println(f.getAbsolutePath());
-			Switch s = new Switch(args[2], f);
+			s = new Switch(args[2], f);
 			System.out.println(s);
 			// structure cree
 			// lancer le server d'emulation...
 			
 		}
 		else {
-			System.err.println("pas assez d'arguments");
+			if (args.length>0) {
+				System.out.println("-> default");
+				f = new File("network.conf");
+				s = new Switch(args[0], f);
+				System.out.println(s);
+			}
+			else 
+				System.err.println("pas assez d'arguments ");
+			
 		}
 			
 	}

@@ -1,14 +1,12 @@
 package fr.umlv.jap.net.eou;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 /*
  * Cree le Mar 8, 2004
  * 
  * Maitrise info 2003/2004 - module reseau (java)
  */
+
+import java.io.*;
 
 /**
  * Network Project
