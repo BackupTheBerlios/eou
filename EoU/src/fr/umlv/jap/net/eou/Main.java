@@ -20,13 +20,13 @@ public class Main {
 	/** the input */
 	private static BufferedReader input;
 	/** the prompt string */
-	private static String prompt = "net > ";
+	private static final String prompt = "net > ";
 	/** if the listening should stop */
 	public static boolean stop = false;
 
 	private static SyntaxAnalyz sa;
 	
-	public static File DEFAULT_CONF_FILE = new File("../network.conf");
+	public static final File DEFAULT_CONF_FILE = new File("../network.conf");
 
 
 	/**
@@ -80,8 +80,12 @@ public class Main {
 
 
 	public static void main(String[] args) {
-		input = new BufferedReader(new InputStreamReader(System.in));
-		sa = new SyntaxAnalyz();
-		listening();
+//		input = new BufferedReader(new InputStreamReader(System.in));
+//		sa = new SyntaxAnalyz();
+//		listening();
+		Switch s1 = new Switch("switch1", DEFAULT_CONF_FILE);
+		Switch s2 = new Switch("switch2", DEFAULT_CONF_FILE);
+		byte[] buf = new byte[1024];
+		s1.getPort(3).write(buf);
 	}
 }

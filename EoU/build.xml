@@ -1,11 +1,11 @@
-<project name="host" default="dist" basedir=".">
+<project name="eou" default="dist" basedir=".">
     <description>
 
     </description>
-  <property name="src" location="."/>
-  <property name="classes" location="./classes"/>
-  <property name="docs" location="./docs"/>
-  <property name="bin"  location="../bin"/>
+  <property name="src" location="src" />
+  <property name="classes" location="classes" />
+  <property name="docs" location="docs" />
+  <property name="bin"  location="lib" />
 
   <target name="init">
     <mkdir dir="${classes}"/>
@@ -13,19 +13,19 @@
   </target>
 
   <target name="compile" depends="init" description="compiler les sources" >
-    <javac srcdir="${src}" destdir="${classes}"/>
+    <javac srcdir="${src}" destdir="${classes}" />
   </target>
   
   <target name="dist" depends="compile" description="creer la distribution" >
-    <jar jarfile="${bin}/host.jar" basedir="${classes}">
+    <jar jarfile="${bin}/eou.jar" basedir="${classes}">
        <manifest>
-           <attribute name="Main-class" value="src.Main"/>
+           <attribute name="Main-class" value="fr.umlv.jap.net.eou.Main"/>
        </manifest>
     </jar>
   </target>
 
   <target name="doc" description="documenter les sources" >
-    <javadoc  packagenames="environnement.*,equipement.*,frame.*,launcher.*,operation.*"
+      <javadoc  packagenames="environnement.*,equipement.*,frame.*,launcher.*,operation.*"
            sourcepath="${src}"
            defaultexcludes="yes"
            destdir="${docs}/api"
@@ -36,8 +36,8 @@
   </target>
 
   <target name="clean" description="Clean Up" >
-    <delete dir="${classes}"/>
-    <delete dir="${docs}/api"/>
+    <delete dir="${classes}" />
+    <delete dir="${docs}/api" />
   </target>
 </project>
 

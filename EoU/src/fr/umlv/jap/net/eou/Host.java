@@ -25,9 +25,14 @@ public class Host {
 //	private OurIp ip;
 	private InetAddress ip;
 	
-	private InetSocketAddress link;
+//	private InetSocketAddress link;
+	private OurPort link;
 	
 	//TODO ajouter une table ARP
+	
+	// communication
+//	private MulticastSocket mcs; // ecoute ?
+//	private DatagramSocket dgs; // envoie ?
 	
 	
 	/** @deprecated pas de creation directe ? */
@@ -58,23 +63,24 @@ public class Host {
 					else if (line.startsWith("IP-address:"))
 						this.ip = SyntaxAnalyz.readIp(line);
 					else if (line.startsWith("link:"))
-						this.link = SyntaxAnalyz.readLink(line);
+						this.link = new OurPort(SyntaxAnalyz.readLink(line));
 					line = lnr.readLine();
 				}
+				
 			} catch (IOException e) {
 				System.err.println("Erreur d'E/S sur la construction de l'hote");
 			}
 			
 			//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
-			new Thread() {
-				public void run() {
-					try {
-						survey();
-					} catch (IOException e) {
-						System.err.println("Erreur d'E/S sur l\'ecoute de l'hote");
-					}
-				}
-			}.start();
+		//	new Thread() {
+		//		public void run() {
+		//			try {
+		//				survey();
+		//			} catch (IOException e) {
+		//				System.err.println("Erreur d'E/S sur l\'ecoute de l'hote");
+		//			}
+		//		}
+		//	}.start();
 
 			
 			//TODO creer une connection TCP qui ecoute le port admin
@@ -104,18 +110,18 @@ public class Host {
 
 	}
 	
-	protected void survey() throws IOException {
-		//TODO une boucle ?
-		byte[] buf = new byte[1024];
-		DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
-		DatagramPacket dgp = new DatagramPacket(buf, 0, link);
-		dgs.send(dgp);
-		dgp.setLength(1024);
-		dgs.receive(dgp);
-		System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
-		//TODO preciser affichage + vers le term...
-		
-	}
+//	protected void survey() throws IOException {
+//		//TODO une boucle ?
+//		byte[] buf = new byte[1024];
+//		DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
+////		DatagramPacket dgp = new DatagramPacket(buf, 0, link);
+//		dgs.send(dgp);
+//		dgp.setLength(1024);
+//		dgs.receive(dgp);
+//		System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
+//		//TODO preciser affichage + vers le term...
+//		
+//	}
 
 	protected void ping(OurMac dest_mac, String msg) {
 			 System.out.println("je veux envoyer "+msg+" a "+dest_mac);
@@ -153,17 +159,25 @@ public class Host {
 	/**
 	 * @param link The link to set.
 	 */
-	public void setLink(InetSocketAddress link) {
-		this.link = link;
+	public void setLink(InetSocketAddress link) throws IOException {
+		this.link = new OurPort(link);
 	}
 
 	/**
 	 * @return Returns the link.
 	 */
-	public InetSocketAddress getLink() {
+	public OurPort getLink() {
 		return link;
 	}
 
+	
+	/**
+     * Returns the mac_address.
+	 * @return OurMac
+	 */
+	public OurMac getMac_address() {
+		return mac_address;
+	}
 	
 	
 	public String toString() {

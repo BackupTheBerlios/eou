@@ -34,14 +34,15 @@ public class Switch {
 //	private ArrayList ports;
 //	private Hashtable ports; // la ya peut ?tre mieux !
 //	private LinkedHashMap ports;
-	private InetSocketAddress[] ports;
+//	private InetSocketAddress[] ports;
+	private OurPort[] ports;
 	
 	private static final int MAX_PORT = 9999;
 //	private static final int DEFAULT_ADMIN_PORT = 8000;
 	
 	/* communication */
-	private MulticastSocket[] ms; // ecoute
-	private DatagramSocket[] ds;  // envoi
+//	private MulticastSocket[] ms; // ecoute
+//	private DatagramSocket[] ds;  // envoi
 	
 	
 
@@ -60,7 +61,7 @@ public class Switch {
 	/** Build a new Switch from a configuration file*/
 	public Switch(String name, File fich) {
 		super();
-		ports = new InetSocketAddress[MAX_PORT];
+		ports = new OurPort[MAX_PORT];
 		LineNumberReader lnr;
 		String line = "";
 		if ((lnr = SyntaxAnalyz.find(fich, "switch", name))!=null) {
@@ -80,7 +81,7 @@ public class Switch {
 					else if (line.startsWith("MAC-address:"))
 						this.mac_address = SyntaxAnalyz.readMac(line);
 					else if (line.startsWith("port-"))
-						addPorts(line);	
+						addPorts(line);
 					// verif null ?
 					//			ports = new ArrayList(MAX_PORT);
 					//			ports = new Hashtable();
@@ -97,8 +98,8 @@ public class Switch {
 		
 		//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
 		//			try {
-		ms = new MulticastSocket[MAX_PORT];
-		ds = new DatagramSocket[MAX_PORT];
+//		ms = new MulticastSocket[MAX_PORT];
+//		ds = new DatagramSocket[MAX_PORT];
 		//			} catch (IOException e) {
 		//				System.err.println("Erreur de connection UDP du switch <"+name+">");
 		//			}
@@ -139,7 +140,7 @@ public class Switch {
 							InetSocketAddress isa = SyntaxAnalyz.parseISA(token);
 							//			ports.add(i, os);
 	//						System.out.println("port : "+new Integer(i)+"\t socket : "+os);
-							setPort(i, isa);
+							setPort(i, new OurPort(isa));
 	//						System.out.println("un");
 	//						this.ds[i] = new DatagramSocket(isa);
 	//						System.out.println("deux");
@@ -184,14 +185,14 @@ public class Switch {
 		return true; //commentaires
 	}
 	
-	public void setPort (int num_port, InetSocketAddress value) {
+	public void setPort (int num_port, OurPort value) {
 //		ports.set(num_port, value);
 //		ports.add(num_port, value);
 //		ports.put(new Integer(num_port), value);
 		ports[num_port] = value;
 	}
 	
-	public InetSocketAddress getPort (int num_port) {
+	public OurPort getPort (int num_port) {
 //		return (OurSocket)ports.get(num_port);
 //		return (OurSocket)ports.get(new Integer(num_port));
 		return ports[num_port];
@@ -229,17 +230,17 @@ public class Switch {
 	/**
 	 * @return Returns the ds.
 	 */
-	public DatagramSocket getDs(int num_port) {
-		return ds[num_port];
-	}
+//	public DatagramSocket getDs(int num_port) {
+//		return ds[num_port];
+//	}
 
 	/**
 	 * @return Returns the ms.
 	 */
-	public MulticastSocket getMs(int num_port) {
-		return ms[num_port];
-	}
-	
+//	public MulticastSocket getMs(int num_port) {
+//		return ms[num_port];
+//	}
+
 	/**
 	 * @return Returns the priority.
 	 */
@@ -290,7 +291,7 @@ public class Switch {
 
 	private void printInfoPort (int i, BufferedWriter output) throws IOException {
 		StringBuffer sb = new StringBuffer();
-		InetSocketAddress os = getPort(i);
+		InetSocketAddress os = getPort(i).getIsa();
 		sb.append("Port <"+ new Integer(i).toString() +">\n State : ");
 		if (os == null) 
 			sb.append("down");
@@ -326,9 +327,13 @@ public class Switch {
 		return sb.toString();
 	}
 	
-	protected void finalize() throws Throwable {
-		Main.stop=true;
+	public void write(String msg, int port) {
+		
 	}
+	
+//	protected void finalize() throws Throwable {
+//		Main.stop=true;
+//	}
 	
 	
 /*	private void test() {
@@ -360,12 +365,15 @@ public class Switch {
 				f = Main.DEFAULT_CONF_FILE;
 //				i = 0;
 			}
-			else 
+			else {
 				System.err.println("pas assez d'arguments ");
+				System.exit(-1);
+			}
+				
+		s = new Switch(args[i], f);
 			
 		}
 		
-		s = new Switch(args[i], f);
 	/*	System.out.println(s);
 		System.out.println("## infos : ");
 		s.info("info");
@@ -379,5 +387,9 @@ public class Switch {
 		System.out.println("bye");
 		*/
 	}
+	
+	
+	
+
 
 }

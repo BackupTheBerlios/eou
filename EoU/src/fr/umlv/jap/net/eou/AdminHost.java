@@ -128,8 +128,11 @@ public class AdminHost implements Runnable {
 				}
 				if (st.hasMoreTokens()) {
 					name = st.nextToken();
+					
 					if (st.hasMoreTokens()) {
 						str = st.nextToken(); // MAC address
+						OurMac om = new OurMac(str);
+						Trame t = new Trame(h.getMac_address(), om, Trame.TYPE_PING, Trame.OPCODE_REQUEST, "test de ping");
 					}
 				}
 			} else {

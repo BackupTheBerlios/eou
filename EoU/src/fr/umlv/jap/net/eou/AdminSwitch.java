@@ -77,6 +77,8 @@ public class AdminSwitch implements Runnable {
 				adminPort(st);
 			else if (cmd.equalsIgnoreCase("quit")) 
 				sock.close();
+			else if (cmd.equalsIgnoreCase("ping")) 
+				adminPing(st);
 /*			else if (cmd.equalsIgnoreCase("stop")) {
 				sw.stop=true;
 				sock.close();
@@ -121,7 +123,7 @@ public class AdminSwitch implements Runnable {
 						sw.setPort(i, null);
 					}
 					else /*if (str.startsWith("["))*/ {
-						sw.setPort(i, SyntaxAnalyz.parseISA(str));
+						sw.setPort(i, new OurPort(SyntaxAnalyz.parseISA(str)));
 					}
 				}
 				else {
@@ -138,5 +140,20 @@ public class AdminSwitch implements Runnable {
 			output.flush();
 		}
 	}
+	
+		/** @deprecated */
+		private void adminPing(StringTokenizer st) throws IOException {
+		if (st.hasMoreTokens()) {
+			System.out.println("on ping ?");
+			int num_port = Integer.parseInt(st.nextToken());
+			OurMac dest_mac = new OurMac(st.nextToken());
+			OurMac origin_mac = new OurMac("depart");
+			Trame msg = new Trame(dest_mac, origin_mac, Trame.TYPE_PING, Trame.OPCODE_REQUEST, "<<pong>>");
+			sw.getPort(num_port).write(msg.getBytes());
+		}
+		else 
+			System.out.println("Ping sans args ?");
+	}
+
 	
 }
