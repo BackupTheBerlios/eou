@@ -15,15 +15,20 @@ import java.net.*;
 public class OurPort {
 
 	protected InetSocketAddress isa;
-
+	// Switch -> domain d'origine
+	// Host   -> Link
+	
 	protected MulticastSocket ms;
 
 	protected DatagramSocket ds;
 	
-	Thread read;
+	protected Thread read;
 	
-	Thread write;
-
+	protected Thread write;
+	
+	protected boolean isHost;
+	
+	
 	/**
 	 * Constructor for OurPort.
 	 */

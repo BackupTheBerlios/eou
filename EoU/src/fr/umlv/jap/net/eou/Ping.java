@@ -5,6 +5,8 @@ package fr.umlv.jap.net.eou;
 
 import java.io.*;
 import java.net.*;
+import java.util.Date;
+import java.util.StringTokenizer;
 
 /**
  * Network Project
@@ -14,6 +16,8 @@ import java.net.*;
  */
 public class Ping {
 
+	Date start_time;
+	
 	/** Default constructor */
 	public Ping() {
 		super();
@@ -30,10 +34,35 @@ public class Ping {
 		}
 		return ia;
 	}
+	
+	
+	private void adminPing(StringTokenizer st) throws IOException {
+		if (st.hasMoreTokens()) {
+			System.out.println("on ping ?");
+			int num_port = Integer.parseInt(st.nextToken());
+			OurMac dest_mac = new OurMac(st.nextToken());
+			OurMac origin_mac = new OurMac("depart");
+			Trame msg =
+			new Trame(
+					dest_mac,
+					origin_mac,
+					Trame.TYPE_PING,
+					Trame.OPCODE_REQUEST,
+					"<<pong>>");
+			//	sw.getPort(num_port).write(msg.getBytes());
+			
+		} else
+			System.out.println("Ping sans args ?");
+	}
+	
 
+	
 	public static void main(String[] args) {
-		File f;
+		File f = null;
 		Ping p;
+		String name;
+		InetAddress ip;
+		OurMac mac;
 		if (args.length>1 && args[0].equalsIgnoreCase("-conf")) {
 	//		f = new File(args[1]);
 //			System.out.println(f.getAbsolutePath());
@@ -52,27 +81,20 @@ public class Ping {
 			else 
 				System.err.println("pas assez d'arguments ");	
 		}
-	}
-	
-		private void adminPing(StringTokenizer st) throws IOException {
-		if (st.hasMoreTokens()) {
-			System.out.println("on ping ?");
-			int num_port = Integer.parseInt(st.nextToken());
-			OurMac dest_mac = new OurMac(st.nextToken());
-			OurMac origin_mac = new OurMac("depart");
-			Trame msg =
-				new Trame(
-					dest_mac,
-					origin_mac,
-					Trame.TYPE_PING,
-					Trame.OPCODE_REQUEST,
-					"<<pong>>");
-		//	sw.getPort(num_port).write(msg.getBytes());
 		
-		} else
-			System.out.println("Ping sans args ?");
+		for (int i=0; i<args.length-2; ++i) {
+			if (args[i].equalsIgnoreCase("-conf")) {
+				f = new File(args[++i]);
+			}
+			else if (args[i].equalsIgnoreCase("-ip")) {
+	//			f = new File(args[++i]);
+			}
+		}
+		if (f == null)
+			f=Main.DEFAULT_CONF_FILE;
+		
+		
 	}
-
 	
 	
 }

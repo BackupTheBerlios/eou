@@ -21,25 +21,32 @@ public class Sniff {
 		super();
 		try {
 			this.sock = SyntaxAnalyz.parseISA(str);
-			survey(); //TODO
+			new Thread() {
+				public void run() {	
+					survey(); //TODO
+				}
+			}.start();
 		} catch (UnknownHostException e) {
 		System.err.println("Hote inconnu pour le sniff");
-		} catch (IOException ioe) {
-			System.err.println("Probleme d'E/S pour le sniff");
 		}
 	}
 	
-	private void survey() throws IOException {
-		//TODO une boucle ?
-		byte[] buf = new byte[1024];
-		DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
-		DatagramPacket dgp = new DatagramPacket(buf, 0, sock);
-		dgs.send(dgp);
-		dgp.setLength(1024);
-		dgs.receive(dgp);
-		System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
-		//TODO preciser affichage + vers le term...
-	}
+		protected void survey() /*throws IOException*/ {
+			//TODO une boucle ?
+			byte[] buf = new byte[1024];
+			try {
+				DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
+				DatagramPacket dgp = new DatagramPacket(buf, 0, sock);
+				dgs.send(dgp);
+				dgp.setLength(1024);
+				dgs.receive(dgp);
+				System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
+				//TODO preciser affichage + vers le term...
+			} catch (IOException ioe) {
+				System.err.println("Probleme d'E/S pour le sniff");
+			}
+			
+		}
 	
 	public String toString() {
 		return ("renifle : <"+sock+">");
@@ -54,4 +61,6 @@ public class Sniff {
 			System.err.println("pas assez d'arguments");
 		}
 	}
+	
+	
 }
