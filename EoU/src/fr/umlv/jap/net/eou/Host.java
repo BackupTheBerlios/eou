@@ -58,11 +58,13 @@ public class Host {
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
+		sb.append("##### HOST #####\n");
 		sb.append("[host "+name+"]\n");
 		sb.append("admin-port: "+new Integer(admin_port).toString()+"\n");
 		sb.append("MAC-address: "+mac_address+"\n");
 		sb.append("IP-address: "+ip+"\n");
 		sb.append("link: "+link+"\n");
+		sb.append("##### host #####\n");
 		return sb.toString();
 	}
 	

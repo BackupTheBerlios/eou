@@ -151,6 +151,7 @@ public class Switch {
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
+		sb.append("##### SWITCH #####\n");
 		sb.append("[switch "+name+"]\n");
 		sb.append("admin-port: "+new Integer(admin_port).toString()+"\n");
 		sb.append("MAC-address: "+mac_address+"\n");
@@ -160,7 +161,8 @@ public class Switch {
 		while (i.hasNext()) {
 			sb.append((OurSocket)i.next()+"\n");
 		} 
-		
+
+		sb.append("##### switch #####\n");
 		return sb.toString();
 	}
 	
