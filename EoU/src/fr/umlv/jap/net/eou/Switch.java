@@ -28,76 +28,102 @@ public class Switch {
 	private String name;
 	
 	private int priority;
-	
+		
+	protected boolean stop = false;
+
 //	private ArrayList ports;
 //	private Hashtable ports; // la ya peut être mieux !
 //	private LinkedHashMap ports;
-	private OurSocket[] ports;
-	
-//	private static final int DEFAULT_ADMIN_PORT = 8000;
+	private InetSocketAddress[] ports;
 	
 	private static final int MAX_PORT = 9999;
+//	private static final int DEFAULT_ADMIN_PORT = 8000;
 	
-//	protected boolean stop = false;
+	/* communication */
+	private MulticastSocket[] ms; // ecoute
+	private DatagramSocket[] ds;  // envoi
 	
+	
+
 	
 	/** @deprecated not directly ? */
-	public Switch(String switch_name, String mac_add, int adminPort) {
+/*	public Switch(String switch_name, String mac_add, int adminPort) {
 		super();
 		this.name = switch_name;
 		this.mac_address = new OurMac(mac_add);
 		this.admin_port = adminPort;
-	//	ports = new ArrayList(MAX_PORT);
+	//	ports = new ArrayList(MAX_PORT);'
 //	ports = new Hashtable();
 //		ports = new LinkedHashMap();
-	}
+	} */
 	
 	/** Build a new Switch from a configuration file*/
 	public Switch(String name, File fich) {
 		super();
+		ports = new InetSocketAddress[MAX_PORT];
 		LineNumberReader lnr;
-		String line;
+		String line = "";
 		if ((lnr = SyntaxAnalyz.find(fich, "switch", name))!=null) {
-//			lnr.mark(1);
-			this.name = name;
-			// faire une copie de sauvegarde de "lnr" pour assurer si l'ordre n'est pas le bon ?
-			this.admin_port = SyntaxAnalyz.readAdminPort(lnr);
-			// verifier si on n'a pas 0 ?
-			//TODO recup priorite
-			this.priority = -1;
-			this.mac_address = SyntaxAnalyz.readMac(lnr);
-			// verif null ?
-//			ports = new ArrayList(MAX_PORT);
-//			ports = new Hashtable();
-//			ports = new LinkedHashMap();
-			ports = new OurSocket[MAX_PORT];
-			addPorts(lnr);
+			try {
+				//			lnr.mark(1);
+				
+				this.name = name;
+				for (line = lnr.readLine(); line != null && !line.startsWith("["); line = lnr.readLine()) {
+					//			if (line.startsWith("[switch"))
+					// faire une copie de sauvegarde de "lnr" pour assurer si l'ordre n'est pas le bon ?
+					if (line.startsWith("admin-port:"))
+						this.admin_port = SyntaxAnalyz.readAdminPort(line);
+					// verifier si on n'a pas 0 ?
+					// recup priorite
+					else if (line.startsWith("priority:"))
+						this.priority = SyntaxAnalyz.readPriority(line);
+					else if (line.startsWith("MAC-address:"))
+						this.mac_address = SyntaxAnalyz.readMac(line);
+					else if (line.startsWith("port-"))
+						addPorts(line);	
+					// verif null ?
+					//			ports = new ArrayList(MAX_PORT);
+					//			ports = new Hashtable();
+					//			ports = new LinkedHashMap();
+	//				line = lnr.readLine();
+				}
+			}catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
-//			test();
-			
-			//TODO creer une connection TCP qui ecoute le port admin
-			runAdmin();
-			
-			//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
-		}
-		else
-			System.err.println ("Switch <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
-
+//		}
+		//			test();
+		
+		//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
+		//			try {
+		ms = new MulticastSocket[MAX_PORT];
+		ds = new DatagramSocket[MAX_PORT];
+		//			} catch (IOException e) {
+		//				System.err.println("Erreur de connection UDP du switch <"+name+">");
+		//			}
+		System.out.println(this);
+		
+		//TODO creer une connection TCP qui ecoute le port admin
+		runAdmin();
+		
 	}
+	else
+		System.err.println ("Switch <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
+
+}
 
 	public String getName() {
 		return this.name;
 	}
 	
 	
-	private  void addPorts(LineNumberReader lnr) {
-		
-		String line;
+	private  void addPorts(String line) {
+//		String line;
 		String token = null;
 		int i;
-		
 		try {
-			while ((line = lnr.readLine())!=null)
+//			while ((line = lnr.readLine())!=null)
 				if (line.startsWith("port-")) {
 					//		i = Integer.parseInt(line.substring("port-".length(), line.indexOf(":")));
 
@@ -110,10 +136,15 @@ public class Switch {
 						if (st.hasMoreTokens()) {
 							token = st.nextToken();
 	//						System.err.println (token);
-							OurSocket os = new OurSocket(token);
+							InetSocketAddress isa = SyntaxAnalyz.parseISA(token);
 							//			ports.add(i, os);
 	//						System.out.println("port : "+new Integer(i)+"\t socket : "+os);
-							setPort(i, os);
+							setPort(i, isa);
+	//						System.out.println("un");
+	//						this.ds[i] = new DatagramSocket(isa);
+	//						System.out.println("deux");
+	//						this.ms[i] = new MulticastSocket(isa);
+	//						System.out.println("trois");
 						}
 					}
 				}
@@ -153,20 +184,20 @@ public class Switch {
 		return true; //commentaires
 	}
 	
-	public void setPort (int num_port, OurSocket value) {
+	public void setPort (int num_port, InetSocketAddress value) {
 //		ports.set(num_port, value);
 //		ports.add(num_port, value);
 //		ports.put(new Integer(num_port), value);
 		ports[num_port] = value;
 	}
 	
-	public OurSocket getPort (int num_port) {
+	public InetSocketAddress getPort (int num_port) {
 //		return (OurSocket)ports.get(num_port);
 //		return (OurSocket)ports.get(new Integer(num_port));
 		return ports[num_port];
 	}
 	
-	public int getPortNumber (OurSocket os) {
+	public int getPortNumber (InetSocketAddress os) {
 //		System.out.println("num de port ? "+ )
 //		return ports.hashCode();
 		for (int i=0; i<ports.length; i++)
@@ -179,14 +210,14 @@ public class Switch {
 	private void runAdmin() {
 		try {
 			final ServerSocket ss = new ServerSocket(admin_port);
-			System.err.println("yop");
-					while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
-//						Socket s = ss.accept();
-//						System.err.println("hey");
+			System.out.println("ready");
+					while (/*!this.stop &&*/ !Main.stop) {//Idealement, il faurait gerer un pool de threads
+						Socket s = ss.accept();
+						System.out.println("nvelle connection");
 						// un client s'est connecté
 		//				new Thread (new AdminSwitch(name, s)).start();
 //						new Thread (new AdminSwitch(this, s)).start();
-						new Thread (new AdminSwitch(this, ss)).start();
+						new Thread (new AdminSwitch(this, s)).start(); // finalement pas threade ?
 					}
 				
 		} catch (IOException e) {
@@ -194,6 +225,36 @@ public class Switch {
 		}
 
 	}
+	
+	/**
+	 * @return Returns the ds.
+	 */
+	public DatagramSocket getDs(int num_port) {
+		return ds[num_port];
+	}
+
+	/**
+	 * @return Returns the ms.
+	 */
+	public MulticastSocket getMs(int num_port) {
+		return ms[num_port];
+	}
+	
+	/**
+	 * @return Returns the priority.
+	 */
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * @param priority The priority to set.
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+	
 	
 /*	
 	protected void admin(Socket sock) {
@@ -229,13 +290,13 @@ public class Switch {
 
 	private void printInfoPort (int i, BufferedWriter output) throws IOException {
 		StringBuffer sb = new StringBuffer();
-		OurSocket os = getPort(i);
-		sb.append("Port <"+ new Integer(i).toString() +">\n Etat : ");
+		InetSocketAddress os = getPort(i);
+		sb.append("Port <"+ new Integer(i).toString() +">\n State : ");
 		if (os == null) 
 			sb.append("down");
 		else {
 			sb.append("up\n");
-			sb.append(" Domaine de collision : "+os);
+			sb.append(" Colision domain : "+os);
 			//TODO ajouter pour le spanning tree
 		}
 //		System.out.println(sb);
@@ -249,7 +310,7 @@ public class Switch {
 		sb.append("[switch "+name+"]\n");
 		sb.append("admin-port: "+new Integer(admin_port)+"\n");
 		sb.append("MAC-address: "+mac_address+"\n");
-		sb.append("priorité : "+new Integer(priority)+"\n");
+		sb.append("priority: "+new Integer(priority)+"\n");
 //		Iterator i = ports.iterator();
 /*		Iterator i = ports.values().iterator();
 
@@ -304,7 +365,7 @@ public class Switch {
 		}
 		
 		s = new Switch(args[i], f);
-/*		System.out.println(s);
+	/*	System.out.println(s);
 		System.out.println("## infos : ");
 		s.info("info");
 		System.out.println("## infos 6: ");
@@ -316,19 +377,6 @@ public class Switch {
 		s.stop = true;
 		System.out.println("bye");
 		*/
-	}
-	/**
-	 * @return Returns the priority.
-	 */
-	public int getPriority() {
-		return priority;
-	}
-
-	/**
-	 * @param priority The priority to set.
-	 */
-	public void setPriority(int priority) {
-		this.priority = priority;
 	}
 
 }

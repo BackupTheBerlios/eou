@@ -1,5 +1,8 @@
 package fr.umlv.jap.net.eou;
 
+import java.io.IOException;
+import java.net.*;
+
 /* Maitrise info - Reseau - projet */
 /* Created on 9 mars 2004 */
 
@@ -11,12 +14,31 @@ package fr.umlv.jap.net.eou;
  */
 public class Sniff {
 
-	private OurSocket sock;
+	private InetSocketAddress sock;
 	
 	/** Default constructor */
 	public Sniff(String str) {
 		super();
-		this.sock = new OurSocket(str);
+		try {
+			this.sock = SyntaxAnalyz.parseISA(str);
+			survey(); //TODO
+		} catch (UnknownHostException e) {
+		System.err.println("Hote inconnu pour le sniff");
+		} catch (IOException ioe) {
+			System.err.println("Probleme d'E/S pour le sniff");
+		}
+	}
+	
+	private void survey() throws IOException {
+		//TODO une boucle ?
+		byte[] buf = new byte[1024];
+		DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
+		DatagramPacket dgp = new DatagramPacket(buf, 0, sock);
+		dgs.send(dgp);
+		dgp.setLength(1024);
+		dgs.receive(dgp);
+		System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
+		//TODO preciser affichage + vers le term...
 	}
 	
 	public String toString() {

@@ -20,6 +20,11 @@ public class OurMac {
 		address = str;
 	}
 	
+	public boolean equals(OurMac mac) {
+		return (this.toString().compareTo(mac.toString())==0);
+		// pas beau, faire mieux ?
+	}
+
 	public String toString() {
 		return address;
 	}

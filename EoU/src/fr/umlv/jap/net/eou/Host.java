@@ -22,15 +22,16 @@ public class Host {
 	private OurMac mac_address;
 	
 //	private String ip;
-	private OurIp ip;
+//	private OurIp ip;
+	private InetAddress ip;
 	
-	private OurSocket link;
+	private InetSocketAddress link;
 	
 	//TODO ajouter une table ARP
 	
 	
 	/** @deprecated pas de creation directe ? */
-	public Host(String name, int admin_port, String macAddr, String ip, OurSocket link) {
+/*	public Host(String name, int admin_port, String macAddr, String ip, OurSocket link) {
 		super();
 		this.name = name;
 		this.admin_port = admin_port;
@@ -38,7 +39,7 @@ public class Host {
 		this.ip = new OurIp(ip);
 		this.link = link;
 	}
-
+*/
 	/** Default constructor */
 	public Host(String name, File fich) {
 		super();
@@ -46,17 +47,39 @@ public class Host {
 		String line;
 		if ((lnr = SyntaxAnalyz.find(fich, "host", name))!=null) {
 			this.name = name;
-			this.admin_port = SyntaxAnalyz.readAdminPort(lnr);
-			this.mac_address = SyntaxAnalyz.readMac(lnr);
-			this.ip = SyntaxAnalyz.readIp(lnr);
-			this.link = SyntaxAnalyz.readLink(lnr);
+			try {
+				line = lnr.readLine();
+				while (line != null && !line.startsWith("[")) {
+					
+					if (line.startsWith("admin-port:"))
+						this.admin_port = SyntaxAnalyz.readAdminPort(line);
+					else if (line.startsWith("MAC-address:"))
+						this.mac_address = SyntaxAnalyz.readMac(line);
+					else if (line.startsWith("IP-address:"))
+						this.ip = SyntaxAnalyz.readIp(line);
+					else if (line.startsWith("link:"))
+						this.link = SyntaxAnalyz.readLink(line);
+					line = lnr.readLine();
+				}
+			} catch (IOException e) {
+				System.err.println("Erreur d'E/S sur la construction de l'hote");
+			}
 			
 			//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
+			new Thread() {
+				public void run() {
+					try {
+						survey();
+					} catch (IOException e) {
+						System.err.println("Erreur d'E/S sur l\'ecoute de l'hote");
+					}
+				}
+			}.start();
 
 			
 			//TODO creer une connection TCP qui ecoute le port admin
 			runAdmin();
-
+			
 		}
 		else
 			System.err.println ("Host <"+name+"> introuvable dans le fichier <"+fich.getAbsolutePath()+">");
@@ -66,10 +89,10 @@ public class Host {
 	private void runAdmin() {
 		try {
 			final ServerSocket ss = new ServerSocket(admin_port);
-			System.err.println("yop");
+			System.out.println("ready");
 					while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
 						Socket s = ss.accept();
-						System.err.println("hey");
+						System.out.println("connection");
 						// un client s'est connecté
 		//				new Thread (new AdminSwitch(name, s)).start();
 						new Thread (new AdminHost(this, s)).start();
@@ -80,8 +103,20 @@ public class Host {
 		}
 
 	}
-
 	
+	protected void survey() throws IOException {
+		//TODO une boucle ?
+		byte[] buf = new byte[1024];
+		DatagramSocket dgs = new DatagramSocket(); // num de port choisi par java
+		DatagramPacket dgp = new DatagramPacket(buf, 0, link);
+		dgs.send(dgp);
+		dgp.setLength(1024);
+		dgs.receive(dgp);
+		System.out.println("sniff lis : "+new String(dgp.getData(), 0, dgp.getLength()));
+		//TODO preciser affichage + vers le term...
+		
+	}
+
 	
 	//TODO voir pour les accesseurs necessaires
 	
@@ -96,28 +131,28 @@ public class Host {
 	/**
 	 * @return Returns the ip.
 	 */
-	public OurIp getIp() {
+	public InetAddress getIp() {
 		return ip;
 	}
 	
 	/**
 	 * @param ip The ip to set.
 	 */
-	public void setIp(OurIp ip) {
+	public void setIp(InetAddress ip) {
 		this.ip = ip;
 	}
 
 	/**
 	 * @param link The link to set.
 	 */
-	public void setLink(OurSocket link) {
+	public void setLink(InetSocketAddress link) {
 		this.link = link;
 	}
 
 	/**
 	 * @return Returns the link.
 	 */
-	public OurSocket getLink() {
+	public InetSocketAddress getLink() {
 		return link;
 	}
 

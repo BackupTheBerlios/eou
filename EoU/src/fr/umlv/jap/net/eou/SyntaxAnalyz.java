@@ -7,6 +7,7 @@ package fr.umlv.jap.net.eou;
  */
 
 import java.io.*;
+import java.net.*;
 import java.util.StringTokenizer;
 
 /**
@@ -17,6 +18,7 @@ import java.util.StringTokenizer;
  */
 public class SyntaxAnalyz {
 	
+	private static int DEFAULT_PORT = 1234;
 
 	/** Name of the commands */
 /*	private static final String[] funcName =
@@ -83,30 +85,49 @@ public class SyntaxAnalyz {
 		return null;
 	}
 	
-	public static int readAdminPort (LineNumberReader lnr) {
-		String line;
+	public static int readAdminPort (String line) {
+//		String line;
 		String token = null;
 		try {
-			while ((line = lnr.readLine())!=null)
+//			while ((line = lnr.readLine())!=null)
 			if (line.startsWith("admin-port:")) {
-			StringTokenizer st = new StringTokenizer(line);
+				StringTokenizer st = new StringTokenizer(line);
 			while (st.hasMoreTokens())
 				token = st.nextToken();
 			return Integer.parseInt(token);
 			}
 		} catch (NumberFormatException e) {
 			System.err.println ("format incorrect : <"+token+"> n\'est pas un nombre ?");
-		} catch (IOException e) {
+		}/* catch (IOException e) {
 			System.err.println ("Erreur d'entree sortie pendant la lecture du port d'administration");
-		}
+		}*/
 		return 0;
 	}
 	
-	public static OurMac readMac(LineNumberReader lnr) {
-		String line;
+	public static int readPriority (String line) {
+//		String line;
 		String token = null;
 		try {
-			while ((line = lnr.readLine())!=null)
+//			while ((line = lnr.readLine())!=null)
+			if (line.startsWith("priority:")) {
+				StringTokenizer st = new StringTokenizer(line);
+			while (st.hasMoreTokens())
+				token = st.nextToken();
+			return Integer.parseInt(token);
+			}
+		} catch (NumberFormatException e) {
+			System.err.println ("format incorrect : <"+token+"> n\'est pas un nombre ?");
+		}/* catch (IOException e) {
+			System.err.println ("Erreur d'entree sortie pendant la lecture du port d'administration");
+		}*/
+		return 0;
+	}
+	
+	public static OurMac readMac(String line) {
+//		String line;
+		String token = null;
+//		try {
+//			while ((line = lnr.readLine())!=null)
 				if (line.startsWith("MAC-address:")) {
 					
 					StringTokenizer st = new StringTokenizer(line);
@@ -115,25 +136,25 @@ public class SyntaxAnalyz {
 					return new OurMac(token);
 					
 				}
-		} catch (IOException e) {
-			System.err.println ("Erreur d'entree sortie pendant la lecture de la mac-adresse");
-		}
+//		} catch (IOException e) {
+//			System.err.println ("Erreur d'entree sortie pendant la lecture de la mac-adresse");
+//		}
 		return null;
 	}
 	
 
 	
-	public static OurIp readIp(LineNumberReader lnr) {
-		String line;
+	public static InetAddress readIp(String line) {
+//		String line;
 		String token = null;
 		try {
-			while ((line = lnr.readLine())!=null)
+//			while ((line = lnr.readLine())!=null)
 				if (line.startsWith("IP-address:")) {
 					
 					StringTokenizer st = new StringTokenizer(line);
 					while (st.hasMoreTokens())
 						token = st.nextToken();
-					return new OurIp(token);
+					return InetAddress.getByName(token);
 					
 				}
 		} catch (IOException e) {
@@ -144,17 +165,17 @@ public class SyntaxAnalyz {
 	
 
 	
-	public static OurSocket readLink(LineNumberReader lnr) {
-		String line;
+	public static InetSocketAddress readLink(String line) {
+//		String line;
 		String token = null;
 		try {
-			while ((line = lnr.readLine())!=null)
+//			while ((line = lnr.readLine())!=null)
 				if (line.startsWith("link:")) {
 					
 					StringTokenizer st = new StringTokenizer(line);
 					while (st.hasMoreTokens())
 						token = st.nextToken();
-					return new OurSocket(token);
+					return SyntaxAnalyz.parseISA(token);
 					
 				}
 		} catch (IOException e) {
@@ -163,8 +184,21 @@ public class SyntaxAnalyz {
 		return null;
 	}
 	
-
-
+	
+	public static InetSocketAddress parseISA(String sock) throws UnknownHostException {
+		//	super();
+		StringTokenizer st = new StringTokenizer(sock, ":");
+		//TODO ajouter verif ...
+		//	this.ip = new OurIp(st.nextToken());
+		int port = DEFAULT_PORT;
+		InetAddress ip = InetAddress.getByName(st.nextToken());
+		try {
+			port = Integer.parseInt(st.nextToken());
+		} catch (NumberFormatException nfe) {
+			System.err.println("Probleme de format... entier attendu");
+		}
+		return new InetSocketAddress(ip, port);
+	}
 
 	
 }

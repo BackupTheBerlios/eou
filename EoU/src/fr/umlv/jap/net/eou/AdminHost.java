@@ -40,7 +40,7 @@ public class AdminHost implements Runnable {
 			output = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
 			
 			String str = "";
-			output.write("Administration de l\'hote <"+h.getName()+">...\n\tEntrez votre commande : \n");
+			output.write("Host <"+h.getName()+"> Administration...\n\tYour command : \n");
 			output.flush();
 			System.out.println(str);
 			while ((str = is.readLine())!=null) {
@@ -72,11 +72,15 @@ public class AdminHost implements Runnable {
 				adminLink(st);
 			else if (cmd.equalsIgnoreCase("quit")) 
 				sock.close();
+			else {
+				output.write("Unknown command <"+cmd+"> for Host configuration\n");
+				output.flush();
+			}
 		}
 		// else //TODO gerer les autres cmd
 		//			else System.out.println("Commande <"+cmd+"> de config de sitch non reconnue");
 		else {
-			output.write("Commande <"+cmd+"> de config d\'hote non reconnue\n");
+			output.write("Unknown command <"+cmd+"> for Host configuration\n");
 			output.flush();
 		}
 	}
@@ -88,7 +92,7 @@ public class AdminHost implements Runnable {
 			output.flush();
 		}
 		else {
-			h.setIp(new OurIp(st.nextToken()));
+			h.setIp(InetAddress.getByName(st.nextToken()));
 		}
 	}
 	
@@ -103,7 +107,7 @@ public class AdminHost implements Runnable {
 			if (str.equalsIgnoreCase("down")) 
 				h.setLink(null);
 				else {
-					h.setLink(new OurSocket(str));
+					h.setLink(SyntaxAnalyz.parseISA(str));
 				}
 		}
 	}
