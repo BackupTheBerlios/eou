@@ -34,7 +34,7 @@ public class Switch {
 	
 //	private static final int DEFAULT_ADMIN_PORT = 8000;
 	
-	private static final int MAX_PORT = 9999;
+//	private static final int MAX_PORT = 9999;
 	
 	
 	/** Build a new Switch */

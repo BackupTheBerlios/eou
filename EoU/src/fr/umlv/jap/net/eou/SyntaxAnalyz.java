@@ -126,6 +126,48 @@ public class SyntaxAnalyz {
 	}
 	
 
+	
+	public static OurIp readIp(LineNumberReader lnr) {
+		String line;
+		String token = null;
+		try {
+			while ((line = lnr.readLine())!=null)
+				if (line.startsWith("IP-address:")) {
+					
+					StringTokenizer st = new StringTokenizer(line);
+					while (st.hasMoreTokens())
+						token = st.nextToken();
+					return new OurIp(token);
+					
+				}
+		} catch (IOException e) {
+			System.err.println ("Erreur d'entree sortie pendant la lecture de l\'adresse IP");
+		}
+		return null;
+	}
+	
+
+	
+	public static OurSocket readLink(LineNumberReader lnr) {
+		String line;
+		String token = null;
+		try {
+			while ((line = lnr.readLine())!=null)
+				if (line.startsWith("link:")) {
+					
+					StringTokenizer st = new StringTokenizer(line);
+					while (st.hasMoreTokens())
+						token = st.nextToken();
+					return new OurSocket(token);
+					
+				}
+		} catch (IOException e) {
+			System.err.println ("Erreur d'entree sortie pendant la lecture de l\'adresse IP");
+		}
+		return null;
+	}
+	
+
 
 
 	
