@@ -11,14 +11,25 @@ package fr.umlv.jap.net.eou;
  */
 public class Sniff {
 
-	/**
-	 * 
-	 */
-	public Sniff() {
+	private OurSocket sock;
+	
+	/** Default constructor */
+	public Sniff(String str) {
 		super();
-		// TODO Auto-generated constructor stub
+		this.sock = new OurSocket(str);
 	}
-
+	
+	public String toString() {
+		return ("renifle : <"+sock+">");
+	}
+	
 	public static void main(String[] args) {
+		if (args.length>0) {
+			Sniff s = new Sniff(args[0]);
+			System.out.println(s);
+		}
+		else {
+			System.err.println("pas assez d'arguments");
+		}
 	}
 }
