@@ -1,1 +1,1 @@
-CLASSPATH=$CLASSPATH:"../classes/":.;
+export JAVA_HOME="/usr/local/j2sdk1.4.1/"
