@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="EoU" default="javadoc">
+    <target name="javadoc">
+        <javadoc destdir="docs\api" access="private" source="1.4"
+            use="true" notree="false" nonavbar="false" noindex="false"
+            splitindex="true" author="true" version="true"
+            nodeprecatedlist="false" nodeprecated="false"
+            packagenames="fr.umlv.jap.net.eou" sourcepath="src" classpath="classes"/>
+    </target>
+</project>
