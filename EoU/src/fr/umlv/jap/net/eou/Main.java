@@ -22,9 +22,10 @@ public class Main {
 	/** the prompt string */
 	private static String prompt = "net > ";
 	/** if the listening should stop */
-	private static boolean stop = false;
+	public static boolean stop = false;
 
 	private static SyntaxAnalyz sa;
+	
 
 
 	/**

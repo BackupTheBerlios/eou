@@ -27,7 +27,7 @@ public class Switch {
 	
 	private String name;
 	
-//	private int priority;
+	private int priority;
 	
 //	private ArrayList ports;
 //	private Hashtable ports; // la ya peut être mieux !
@@ -38,7 +38,7 @@ public class Switch {
 	
 	private static final int MAX_PORT = 9999;
 	
-	protected boolean stop = false;
+//	protected boolean stop = false;
 	
 	
 	/** @deprecated not directly ? */
@@ -64,6 +64,7 @@ public class Switch {
 			this.admin_port = SyntaxAnalyz.readAdminPort(lnr);
 			// verifier si on n'a pas 0 ?
 			//TODO recup priorite
+			this.priority = -1;
 			this.mac_address = SyntaxAnalyz.readMac(lnr);
 			// verif null ?
 //			ports = new ArrayList(MAX_PORT);
@@ -72,7 +73,7 @@ public class Switch {
 			ports = new OurSocket[MAX_PORT];
 			addPorts(lnr);
 			
-			test();
+//			test();
 			
 			//TODO creer une connection TCP qui ecoute le port admin
 			runAdmin();
@@ -179,7 +180,7 @@ public class Switch {
 		try {
 			final ServerSocket ss = new ServerSocket(admin_port);
 			System.err.println("yop");
-					while (!stop) {//Idealement, il faurait gerer un pool de threads
+					while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
 						Socket s = ss.accept();
 						System.err.println("hey");
 						// un client s'est connecté
@@ -212,46 +213,20 @@ public class Switch {
 		
 	}
 */	
-	/** @deprecated */
-	protected void info(String args) {
-		StringTokenizer st = new StringTokenizer(args);
-		if(!st.nextToken().equalsIgnoreCase("info"))
-			System.err.println ("pb dans les param de l'info");
-		else {
-			if (!st.hasMoreTokens()) {
-				// par defaut;
-				//		Enumeration ens = ports.keys();
-				//			Iterator iter = ports.values().iterator();
-				//		while (ens.hasMoreElements()) {
-				//			while (iter.hasNext()) {
-				//			printInfoPort(Integer.parseInt((String)ens.nextElement())); // plus simple ?
-				//			printInfoPort(((OurSocket)iter.next())); // plus simple ?
-				//			printInfoPort(ports.(iter.next())); // plus simple ?
-				//			}
-				for (int i=0; i<ports.length; ++i)
-					if (ports[i]!=null)
-						printInfoPort(i);
-			}
-			else {// info du port i
-				int i = Integer.parseInt(st.nextToken());
-				printInfoPort(i);
-			}
-		}
-	}
 	
-	protected void info(StringTokenizer st) {
+	protected void info(StringTokenizer st, BufferedWriter output) throws IOException {
 		if (!st.hasMoreTokens()) {
 			for (int i=0; i<ports.length; ++i)
 				if (ports[i]!=null)
-					printInfoPort(i);
+					printInfoPort(i, output);
 		}
 		else {// info du port i
 			int i = Integer.parseInt(st.nextToken());
-			printInfoPort(i);
+			printInfoPort(i, output);
 		}
 	}
 
-	private void printInfoPort (int i) {
+	private void printInfoPort (int i, BufferedWriter output) throws IOException {
 		StringBuffer sb = new StringBuffer();
 		OurSocket os = getPort(i);
 		sb.append("Port <"+ new Integer(i).toString() +">\n Etat : ");
@@ -262,15 +237,18 @@ public class Switch {
 			sb.append(" Domaine de collision : "+os);
 			//TODO ajouter pour le spanning tree
 		}
-		System.out.println(sb);
+//		System.out.println(sb);
+		output.write(sb.toString()+"\n");
+		output.flush();
 	}
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("##### SWITCH #####\n");
 		sb.append("[switch "+name+"]\n");
-		sb.append("admin-port: "+new Integer(admin_port).toString()+"\n");
+		sb.append("admin-port: "+new Integer(admin_port)+"\n");
 		sb.append("MAC-address: "+mac_address+"\n");
+		sb.append("priorité : "+new Integer(priority)+"\n");
 //		Iterator i = ports.iterator();
 /*		Iterator i = ports.values().iterator();
 
@@ -287,11 +265,11 @@ public class Switch {
 	}
 	
 	protected void finalize() throws Throwable {
-		stop=true;
+		Main.stop=true;
 	}
 	
 	
-	private void test() {
+/*	private void test() {
 		System.out.println(this);
 		System.out.println("## infos : ");
 		this.info("info");
@@ -300,7 +278,7 @@ public class Switch {
 		System.out.println("## infos 7: ");
 		this.info("info 7");		
 	}
-	
+	*/
 	// TESTS ...
 	public static void main(String[] args) {
 		int i = 0;
@@ -338,4 +316,18 @@ public class Switch {
 		System.out.println("bye");
 		*/
 	}
+	/**
+	 * @return Returns the priority.
+	 */
+	public int getPriority() {
+		return priority;
+	}
+
+	/**
+	 * @param priority The priority to set.
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
 }

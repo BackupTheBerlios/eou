@@ -4,6 +4,7 @@ package fr.umlv.jap.net.eou;
 /* Created on 9 mars 2004 */
 
 import java.io.*;
+import java.net.*;
 
 /**
  * Network Project
@@ -50,9 +51,11 @@ public class Host {
 			this.ip = SyntaxAnalyz.readIp(lnr);
 			this.link = SyntaxAnalyz.readLink(lnr);
 			
-			//TODO creer une connection TCP qui ecoute le port admin
-			
 			//TODO creer une connection UDP qui ecoutera le mulsticats et qui reperera ce qui lui appartient..
+
+			
+			//TODO creer une connection TCP qui ecoute le port admin
+			runAdmin();
 
 		}
 		else
@@ -60,7 +63,64 @@ public class Host {
 		
 	}
 	
+	private void runAdmin() {
+		try {
+			final ServerSocket ss = new ServerSocket(admin_port);
+			System.err.println("yop");
+					while (!Main.stop) {//Idealement, il faurait gerer un pool de threads
+						Socket s = ss.accept();
+						System.err.println("hey");
+						// un client s'est connecté
+		//				new Thread (new AdminSwitch(name, s)).start();
+						new Thread (new AdminHost(this, s)).start();
+					}
+				
+		} catch (IOException e) {
+			System.err.println("pb de connection admin switch");
+		}
+
+	}
+
+	
+	
 	//TODO voir pour les accesseurs necessaires
+	
+
+	/**
+	 * @return Returns the name.
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**
+	 * @return Returns the ip.
+	 */
+	public OurIp getIp() {
+		return ip;
+	}
+	
+	/**
+	 * @param ip The ip to set.
+	 */
+	public void setIp(OurIp ip) {
+		this.ip = ip;
+	}
+
+	/**
+	 * @param link The link to set.
+	 */
+	public void setLink(OurSocket link) {
+		this.link = link;
+	}
+
+	/**
+	 * @return Returns the link.
+	 */
+	public OurSocket getLink() {
+		return link;
+	}
+
 	
 	
 	public String toString() {

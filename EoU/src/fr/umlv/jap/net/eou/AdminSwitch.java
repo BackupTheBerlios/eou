@@ -20,6 +20,8 @@ public class AdminSwitch implements Runnable {
 //	private String name;
 	private Switch sw;
 	
+	private BufferedWriter output;
+	
 	/** default constructor */
 	public AdminSwitch(Switch sw, Socket s) {
 		super();
@@ -34,17 +36,18 @@ public class AdminSwitch implements Runnable {
 		// la connection est etablie on recuper les flots;
 		try {
 			BufferedReader is = new BufferedReader (new InputStreamReader(sock.getInputStream()));
-			BufferedWriter os = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
+//			BufferedWriter os = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
+			output = new BufferedWriter (new OutputStreamWriter(sock.getOutputStream()));
 			
 			String str = "";
-			os.write("Administration du switch <"+sw.getName()+">...\n\tEntrez votre commande : \n");
-			os.flush();
+			output.write("Administration du switch <"+sw.getName()+">...\n\tEntrez votre commande : \n");
+			output.flush();
 			System.out.println(str);
 			while ((str = is.readLine())!=null) {
 				System.err.println("admin switch lis : "+str);
-				os.write(str.toUpperCase()); //TODO faire traitement...
-				os.write("\n");
-				os.flush();
+//				output.write(str.toUpperCase()); //TODO faire traitement...
+//				output.write("\n");
+//				output.flush();
 				analyse(str);
 			}
 		} catch (IOException e) {
@@ -52,20 +55,72 @@ public class AdminSwitch implements Runnable {
 		}
 	}
 	
-	private void analyse(String args) {
+	private void analyse(String args) throws IOException {
 		StringTokenizer st = new StringTokenizer(args);
 		String cmd;
 		if (st.hasMoreTokens()) {
 			cmd = st.nextToken();
+//			System.out.println(cmd);
 			if (cmd.equalsIgnoreCase("info"))
-				info(st);
+				adminInfo(st);
+			else if (cmd.equalsIgnoreCase("priority")) {
+				adminPriority(st);
+			}
+			else if (cmd.equalsIgnoreCase("port")) 
+				adminPort(st);
+			else if (cmd.equalsIgnoreCase("quit")) 
+				sock.close();
+			
+			
 			// else //TODO gerer les autres cmd
-			else System.out.println("Commande <"+cmd+"> de config de sitch non reconnue");
+//			else System.out.println("Commande <"+cmd+"> de config de sitch non reconnue");
+			else {
+				output.write("Commande <"+cmd+"> de config de switch non reconnue\n");
+				output.flush();
+			}
 		}
 	}
 	
-	private void info (StringTokenizer st) {
-		sw.info(st);
+	private void adminInfo (StringTokenizer st) throws IOException {
+		sw.info(st, output);
+	}
+	
+	private void adminPriority(StringTokenizer st) throws IOException {
+		if (st.hasMoreTokens()) {
+			sw.setPriority(Integer.parseInt(st.nextToken()));
+			output.write("Nouvelle priorite du switch <"+sw.getName()+"> : "+ new Integer(sw.getPriority())+"\n");
+			output.flush();
+		}
+		else 
+//		System.out.println("Priorite du switch <"+sw.getName()+"> : "+ new Integer(sw.getPriority()));
+		output.write("Priorite du switch <"+sw.getName()+"> : "+ new Integer(sw.getPriority()));
+		output.flush();
+	}
+	
+	private void adminPort(StringTokenizer st) {
+		String str = "";
+		try {
+			if (st.hasMoreTokens()) {
+				str = st.nextToken();
+				int i = Integer.parseInt(str);
+				if (st.hasMoreTokens()) {
+					str = st.nextToken();
+					if (str.equalsIgnoreCase("down")) {
+						sw.setPort(i, null);
+					}
+					else /*if (str.startsWith("["))*/ {
+						sw.setPort(i, new OurSocket(str));
+					}
+				}
+				else 
+					System.err.println("arguments insuffisants dans la config du port");
+			}
+			else 
+				System.err.println("arguments insuffisants dans la config du port");
+	
+		} catch (NumberFormatException nfe) {
+			System.err.println("valeur <"+Integer.parseInt(str)+"> incorrecte, entier attendu");
+		}
 	}
 	
 }
